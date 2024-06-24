@@ -63,8 +63,8 @@ image_response = requests.get(img_url)
 image = Image.open(BytesIO(image_response.content))
 
 # Adjust messagebox height if it exceeds screen height
-if image.height > screen_height:
-  max_description_height = screen_height - image.height - 100  # Adjust the padding as needed
+if image.height > h:
+  max_description_height = h - image.height - 100  # Adjust the padding as needed
   max_description_lines = max_description_height // 20  # Assuming each line is around 20 pixels
 lines = description.splitlines()
 concatenated_description = ''
@@ -77,7 +77,7 @@ for line in lines:
   else:
     line = line.replace(
         '\n', ' ')  # Replace line breaks within the line with a space
-    if current_line_length + len(line) > screen_width // 10:
+    if current_line_length + len(line) > w // 10:
       concatenated_description += '\n' + line
       current_line_length = len(line)
     else:
@@ -90,7 +90,7 @@ root.title('APOD Image Preview')
 
 # Set the width of the scrolledtext widget to screen width
 scroll_text = scrolledtext.ScrolledText(root,
-width=screen_width // 10, height=10, wrap=tk.WORD)
+width=w // 10, height=10, wrap=tk.WORD)
 scroll_text.pack(fill=tk.BOTH, expand=True)
 scroll_text.insert(tk.END, concatenated_description)
 
