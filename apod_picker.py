@@ -19,23 +19,25 @@ if platform.system() == 'Windows':
 # OS type == 'Linux' --> Get screen dimensions for "..."
 if platform.system() == 'Linux':
   try:
-    from Xlib import display
+    import screeninfo
   except ImportError:
-    messagebox.showerror("Error", "Please install the Xlib module")
+    messagebox.showerror("Error", "Please install the screeninfo pkg")
     exit()
-  screen = display.Display().screen()
-  screen_width = screen.width_in_pixels
-  screen_height = screen.height_in_pixels
+  def get_linux_resolution():
+    screen = screeninfo.get_monitors()[0]
+    return screen.width, screen.height
+  width, height = get_linux_resolution()
+  get_linux_resolution()
 # OS type -== 'Darwin' aka MacOS --> Get screen dimensions for "..."
 if platform.system() == 'Darwin':
-  def get_screen_size():  
+  def get_mac_resolution():  
     root = tk.Tk()
     screen_width = root.winfo_screenwidth()
     screen_height = root.winfo_screenheight()
     root.destroy()
     return screen_width, screen_height
-  get_screen_size()
-  screen_width, screen_height = get_screen_size()  
+  get_mac_resolution()
+  screen_width, screen_height = get_mac_resolution()  
   if screen_width is not None:
     print(screen_width, screen_height)
 
