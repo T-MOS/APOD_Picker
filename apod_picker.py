@@ -14,19 +14,17 @@ from PIL import Image, ImageTk
 # OS type == 'Windows' --> Get screen dimensions for "..."
 if platform.system() == 'Windows':
   user32 = ctypes.windll.user32
-  screen_width = user32.GetSystemMetrics(0)
-  screen_height = user32.GetSystemMetrics(1)
+  w = user32.GetSystemMetrics(0)
+  h = user32.GetSystemMetrics(1)
 # OS type == 'Linux' --> Get screen dimensions for "..."
 if platform.system() == 'Linux':
-  try:
-    import screeninfo
-  except ImportError:
-    messagebox.showerror("Error", "Please install the screeninfo pkg")
-    exit()
   def get_linux_resolution():
-    screen = screeninfo.get_monitors()[0]
-    return screen.width, screen.height
-  width, height = get_linux_resolution()
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+    return screen_width, screen_height
+  w, h = get_linux_resolution()
   get_linux_resolution()
 # OS type -== 'Darwin' aka MacOS --> Get screen dimensions for "..."
 if platform.system() == 'Darwin':
@@ -36,10 +34,10 @@ if platform.system() == 'Darwin':
     screen_height = root.winfo_screenheight()
     root.destroy()
     return screen_width, screen_height
+  w,h = get_mac_resolution()
   get_mac_resolution()
-  screen_width, screen_height = get_mac_resolution()  
-  if screen_width is not None:
-    print(screen_width, screen_height)
+if w is not None:
+  print("w: ",w,", h:", h)
 
 """ Web handling """
 # Send GET request to APOD website and parse HTML response with BeautifulSoup
