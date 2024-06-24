@@ -5,7 +5,7 @@ This script fetches the Astronomy Picture of the Day (APOD) from the NASA websit
 
 ## Dependencies
 
-This script requires several Python packages. Ensure you've installed all required packages with the command `pip install -r requirements.txt`.
+This script requires several Python packages. Ensure you've installed all required packages with the command `pip install -r requirements.txt`. Use `apt` or other appropriate package manager for individual packages (or python virtual environment) as needed.
 
 ## Usage
 
