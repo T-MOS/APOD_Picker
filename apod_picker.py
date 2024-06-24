@@ -36,7 +36,8 @@ if platform.system() == 'Darwin':
     return screen_width, screen_height
   get_screen_size()
   screen_width, screen_height = get_screen_size()  
-  print(screen_width, screen_height)
+  if screen_width is not None:
+    print(screen_width, screen_height)
 
 """ Web handling """
 # Send GET request to APOD website and parse HTML response with BeautifulSoup
