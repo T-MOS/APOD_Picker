@@ -1,0 +1,144 @@
+import ctypes
+import os
+import platform
+import tkinter as tk
+from io import BytesIO
+from tkinter import messagebox, scrolledtext, filedialog
+
+import requests
+from bs4 import BeautifulSoup
+from PIL import Image, ImageTk
+
+
+""" Platform specifics """
+# OS type == 'Windows' --> Get screen dimensions for "..."
+if platform.system() == 'Windows':
+  user32 = ctypes.windll.user32
+  screen_width = user32.GetSystemMetrics(0)
+  screen_height = user32.GetSystemMetrics(1)
+# OS type == 'Linux' --> Get screen dimensions for "..."
+if platform.system() == 'Linux':
+  try:
+    from Xlib import display
+  except ImportError:
+    messagebox.showerror("Error", "Please install the Xlib module")
+    exit()
+  screen = display.Display().screen()
+  screen_width = screen.width_in_pixels
+  screen_height = screen.height_in_pixels
+# OS type -== 'Darwin' aka MacOS --> Get screen dimensions for "..."
+if platform.system() == 'Darwin':
+  def get_screen_size():  
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+    return screen_width, screen_height
+  get_screen_size()
+  screen_width, screen_height = get_screen_size()  
+  print(screen_width, screen_height)
+
+""" Web handling """
+# Send GET request to APOD website and parse HTML response with BeautifulSoup
+url = 'https://apod.nasa.gov/apod/astropix.html'
+response = requests.get(url)
+if response.status_code == 200:
+  soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+  img_tag = soup.find('img')
+  if img_tag != None:
+    # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
+    a = img_tag.find_parent('a')
+    img_url = 'https://apod.nasa.gov/apod/' + a['href']
+  else:
+    print("The post contains no accepted image formats")
+else:
+  print(f"Bad response from server... code: {response.status_code}")
+
+# Find the first <p> tag after the image and get its text content
+description = soup.find('img').find_next('p').text.strip()
+
+# Request the image and open it with PIL
+image_response = requests.get(img_url)
+image = Image.open(BytesIO(image_response.content))
+
+# Adjust messagebox height if it exceeds screen height
+if image.height > screen_height:
+  max_description_height = screen_height - image.height - 100  # Adjust the padding as needed
+  max_description_lines = max_description_height // 20  # Assuming each line is around 20 pixels
+lines = description.splitlines()
+concatenated_description = ''
+current_line_length = 0
+for line in lines:
+  line = line.strip()  # Remove whitespace at the beginning and end of the line
+  if line.startswith('Explanation:' + '\n'):
+    concatenated_description += '\n' + line
+    current_line_length = len(line)
+  else:
+    line = line.replace(
+        '\n', ' ')  # Replace line breaks within the line with a space
+    if current_line_length + len(line) > screen_width // 10:
+      concatenated_description += '\n' + line
+      current_line_length = len(line)
+    else:
+      concatenated_description += line
+      current_line_length += len(line)
+
+# Display the image in a preview window
+root = tk.Tk()
+root.title('APOD Image Preview')
+
+# Set the width of the scrolledtext widget to screen width
+scroll_text = scrolledtext.ScrolledText(root,
+width=screen_width // 10, height=10, wrap=tk.WORD)
+scroll_text.pack(fill=tk.BOTH, expand=True)
+scroll_text.insert(tk.END, concatenated_description)
+
+# Create a label and display the image
+image_label = tk.Label(root)
+image_label.pack()
+photo = ImageTk.PhotoImage(image)
+image_label.configure(image=photo)
+
+# Prompt user to confirm before setting the image as desktop background
+messagebox.showinfo('Image Preview', f'Image URL: {img_url}')
+response = messagebox.askquestion(
+    'Set Desktop Background', 'Set this image as your desktop background?')
+
+def select_save_path():
+  root = tk.Tk()
+  root.withdraw()
+  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("PNG", "*.png"),("JPEG","*.jpg"),("All files","*.*")])
+  if file_path:
+    print(f"Image save to: {file_path}")
+    image.save(file_path)
+  else:
+    print("No destination selected")
+    
+""" ask to save """
+if response == 'yes':
+  select_save_path()
+  image_path = os.path.join(os.getcwd(), 'apod_image.jpg')
+  # image.save(image_path)
+
+  # Set the image as desktop background
+  #linux
+  if platform.system() == 'Linux':
+    setterCommand = 'gsettings set org.gnome.desktop.background picture-uri file://' + \
+    image_path
+    os.system(setterCommand)
+  
+  #windows
+  if platform.system() == 'Windows':
+    SPI_SETDESKWALLPAPER = 0x0014
+    ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0,
+                                               image_path, 3)
+
+  messagebox.showinfo('Set Background Successful',
+                      'Desktop background has been set.')
+else:
+  messagebox.showinfo('Set Background Declined',
+                      'Desktop background has not been changed.')
+  
+
+
+root.mainloop()
