@@ -127,7 +127,7 @@ if response == 'yes':
   
   #linux
   if platform.system() == 'Linux':
-    setterCommand = 'pcmanfm --set-background {image_path}'
+    setterCommand = 'pcmanfm --set-wallpaper {image_path}'
     #bad setter
     """ setterCommand = 'gsettings set org.gnome.desktop.background picture-uri file://' + \
     image_path """
