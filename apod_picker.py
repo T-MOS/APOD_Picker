@@ -127,8 +127,10 @@ if response == 'yes':
   
   #linux
   if platform.system() == 'Linux':
-    setterCommand = 'gsettings set org.gnome.desktop.background picture-uri file://' + \
-    image_path
+    setterCommand = 'pcmanfm --set-background {image_path}'
+    #bad setter
+    """ setterCommand = 'gsettings set org.gnome.desktop.background picture-uri file://' + \
+    image_path """
     os.system(setterCommand)
   
   #windows
@@ -147,6 +149,8 @@ if response == 'yes':
       """ % image_path
       # alt formatted vers.
       #script = """tell application "Finder" set desktop picture to POSIX file "%s" end tell""" % image_path
+      # 2nd alt
+      # script = 'tell application "Finder" set desktop picture to POSIX file "%s" end tell' % image_path
       os.system("/usr/bin/osascript -e '%s'" % script)
 
 
