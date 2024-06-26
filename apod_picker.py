@@ -128,16 +128,17 @@ if response == 'yes':
     ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
   if platform.system() == 'Darwin':
     def change_background(image_path):
-      script = """
+      script = f"""
       tell application "Finder"
-        set desktop picture to POSIX file "%s"
+        set desktop picture to POSIX file "{image_path}"
       end tell
-      """ % image_path
+      """
       # new alt
       # script = 'tell application "Finder" set desktop picture to POSIX file "%s" end tell' % image_path
       # 2nd new alt
       # script = f'tell application "Finder" set desktop picture to POSIX file {image_path} end tell'
-      os.system("/usr/bin/osascript -e '%s'" % script)
+      os.system(f"/usr/bin/osascript -e '{script}'")
+      change_background(image_path)
   messagebox.showinfo('Set Background Successful',
                       'Desktop background has been set.')
 else:
