@@ -89,6 +89,7 @@ def select_save_path(input):
   return None
 
 def main():
+  print(threading.active_count())
   root = tk.Tk()
   root.withdraw()
 
