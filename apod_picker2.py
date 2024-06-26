@@ -36,7 +36,8 @@ if platform.system() == 'Darwin':
 def fetch_apod_data():
   # Send GET request to APOD website and parse HTML response with BeautifulSoup
   try:
-    url = 'https://apod.nasa.gov/apod/astropix.html'
+    # url = 'https://apod.nasa.gov/apod/astropix.html'
+    url = 'https://apod.nasa.gov/apod/ap240625.html'
     response = requests.get(url)
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
@@ -53,9 +54,10 @@ def fetch_apod_data():
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
   return None, None
 
-# # Request the image and open it with PIL
-# image_response = requests.get(img_url)
-# image = Image.open(BytesIO(image_response.content))
+img_url, trash = fetch_apod_data() 
+# Request the image and open it with PIL
+image_response = requests.get(img_url)
+image = Image.open(BytesIO(image_response.content))
 
 """ # Adjust messagebox height if it exceeds screen height
 if image.height > h:
@@ -122,13 +124,13 @@ def set_desktop_background(image_path):
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
-def select_save_path(image):
+def select_save_path(input):
   root = tk.Tk()
   root.withdraw()
   file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")])
   if file_path:
     try:
-      image.save(file_path)
+      input.save(file_path)
       print(f"Image saved to: {file_path}")
       return file_path
     except Exception as e:
@@ -143,15 +145,17 @@ def main():
 
   img_url, description = fetch_apod_data()
   if not img_url:
+    root.destroy()
     return
 
-  response = requests.get(img_url)
-  image = Image.open(BytesIO(response.content))
+  image_response = requests.get(img_url)
+  image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
 
   image_label = tk.Label(root, image=photo)
   image_label.pack()
-  root.update()
+  root.update_idletasks()
+  root.deiconify()
 
   description_label = tk.Label(root, text=description, wraplength=w)
   description_label.pack()
@@ -160,8 +164,8 @@ def main():
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
 
   # ask to save
-  if response == '  ':
-    image_path = select_save_path()
+  if user_response == 'yes':
+    image_path = select_save_path(image)
     if image_path:
       set_desktop_background(image_path)
   else:
@@ -171,6 +175,3 @@ def main():
 
 if __name__ == "__main__":
   threading.Thread(target=main).start()
-
-
-
