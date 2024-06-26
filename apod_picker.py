@@ -41,7 +41,8 @@ if w is not None:
 
 """ Web handling """
 # Send GET request to APOD website and parse HTML response with BeautifulSoup
-url = 'https://apod.nasa.gov/apod/astropix.html'
+# url = 'https://apod.nasa.gov/apod/astropix.html'
+url = 'https://apod.nasa.gov/apod/ap240625.html'
 response = requests.get(url)
 if response.status_code == 200:
   soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
@@ -105,8 +106,6 @@ response = messagebox.askquestion(
     'Set Desktop Background', 'Set this image as your desktop background?')
 
 def select_save_path():
-  root = tk.Tk()
-  root.withdraw()
   file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")])
   if file_path:
     print(f"Image saved to: {file_path}")
@@ -130,7 +129,7 @@ if response == 'yes':
     elif platform.system() == 'Darwin':
       script = f"""
       tell application "Finder"
-        set desktop picture to POSIX file '{image_path}'
+        set desktop picture to POSIX file "{image_path}"
       end tell
       """
       os.system(f"/usr/bin/osascript -e '{script}'")
