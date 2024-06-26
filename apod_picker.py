@@ -120,28 +120,21 @@ if response == 'yes':
   image_path = select_save_path()
 
   # Set the image as desktop background
-  if platform.system() == 'Linux':
-    setterCommand = f'pcmanfm --set-background {image_path}'
-    os.system(setterCommand)
-  if platform.system() == 'Windows':
-    SPI_SETDESKWALLPAPER = 0x0014
-    ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
-  if platform.system() == 'Darwin':
-    def change_background(image_path):
+  try:  
+    if platform.system() == 'Linux':
+      setterCommand = f'pcmanfm --set-background {image_path}'
+      os.system(setterCommand)
+    elif platform.system() == 'Windows':
+      SPI_SETDESKWALLPAPER = 0x0014
+      ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
+    elif platform.system() == 'Darwin':
       script = f"""
       tell application "Finder"
-        set desktop picture to POSIX file "{image_path}"
+        set desktop picture to POSIX file '{image_path}'
       end tell
       """
-      # new alt
-      # script = 'tell application "Finder" set desktop picture to POSIX file "%s" end tell' % image_path
-      # 2nd new alt
-      # script = f'tell application "Finder" set desktop picture to POSIX file {image_path} end tell'
       os.system(f"/usr/bin/osascript -e '{script}'")
-      change_background(image_path)
-  messagebox.showinfo('Set Background Successful',
-                      'Desktop background has been set.')
-else:
-  messagebox.showinfo('Set Background Declined',
-                      'Desktop background has not been changed.')
+    messagebox.showinfo('Set Background Successful', 'Desktop background has been set.')
+  except Exception as e:
+    messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 root.mainloop()
