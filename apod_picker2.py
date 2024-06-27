@@ -100,7 +100,7 @@ def format_description(text):
         return concatenated_description
       else:
         line = line.replace('\n', ' ') # Replace line breaks within the line with a space
-        if current_line_length + len(line) > 1920 // 10:
+        if current_line_length + len(line) > w // 10:
           concatenated_description += '\n' + line
           current_line_length = len(line)
         else:
