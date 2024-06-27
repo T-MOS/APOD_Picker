@@ -13,7 +13,7 @@ from PIL import Image, ImageTk
 class ImageViewer:
   def __init__(self, root, image_path):
     self.root = root
-    self.root.title("Image Viewer")
+    self.root.title("Image Previewer")
 
     # Load the original image
     self.original_image = image_path
@@ -159,20 +159,19 @@ def main():
     return
   formatted = format_description(description)
 
+  # initial-s-ize
   root.geometry(f"{w//2}x{h//2}")
-  root.withdraw()
-  root.title('Preview')
+  # root.withdraw()
+
 
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
-  
   description_label = tk.Label(root, text=formatted, justify='left', wraplength=w).pack(side='top')
-  image_label = tk.Label(root, image=photo).pack(side='bottom')
-  root.update_idletasks()
-  root.deiconify()
 
-  messagebox.showinfo('Image Preview', f'Image URL: {img_url}')
+  app = ImageViewer(root, image)
+
+  # messagebox.showinfo('Image Preview', f'Image URL: {img_url}')
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
 
   # ask to save
@@ -181,10 +180,9 @@ def main():
     if image_path:
       set_desktop_background(image_path)
       image.close()
-  else:
-    messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
+  # else:
+  #   messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
   
-  ImageViewer(root, image)
 
   root.mainloop()
 
