@@ -116,18 +116,18 @@ def format_description(text):
 
 def main():
   print(threading.active_count())
-  root = tk.Tk()
-  root.withdraw()
-  root.title('main()')
-
   w,h = get_resolution()
-
+  root = tk.Tk()
   img_url, description = fetch_apod_data()
   if not img_url:
     root.destroy()
     return
-
   formatted = format_description(description)
+
+  root.geometry(f"{w//2}x{h//2}")
+  root.withdraw()
+  root.title('Preview')
+
   print(formatted)
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
