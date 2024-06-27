@@ -86,6 +86,27 @@ def select_save_path(input):
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
 
+def format_description(text):
+  if text:
+    lines = text.splitlines()
+    concatenated_description = ''
+    current_line_length = 0
+    for line in lines:
+      line = line.strip() # Remove whitespace at the beginning and end of the line
+      if line.startswith('Explanation:' + '\n'):
+        concatenated_description += '\n' + line
+        current_line_length = len(line)
+      else:
+        line = line.replace('\n', ' ') # Replace line breaks within the line with a space
+        if current_line_length + len(line) > w // 10:
+          concatenated_description += '\n' + line
+          current_line_length = len(line)
+        else:
+          concatenated_description += line
+          current_line_length += len(line)
+    return concatenated_description
+  return None
+
 def main():
   print(threading.active_count())
   root = tk.Tk()
@@ -99,15 +120,16 @@ def main():
     root.destroy()
     return
 
+  formatted = format_description(description)
+  print(formatted)
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
-
+  
+  description_label = tk.Label(root, text=formatted, wraplength=w).pack(side='top')
   image_label = tk.Label(root, image=photo).pack(side='bottom')
   root.update_idletasks()
   root.deiconify()
-
-  description_label = tk.Label(root, text=description, wraplength=w).pack(side='top')
 
   messagebox.showinfo('Image Preview', f'Image URL: {img_url}')
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
