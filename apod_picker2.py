@@ -123,7 +123,6 @@ def main():
     return
 
   formatted = format_description(description)
-  print(description)
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
