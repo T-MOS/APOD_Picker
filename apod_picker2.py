@@ -93,8 +93,8 @@ def format_description(text):
     current_line_length = 0
     for line in lines:
       line = line.strip() # Remove whitespace at the beginning and end of the line
-      if line.startswith('Explanation:' + '\n'):
-        concatenated_description += '\n' + line
+      if line.startswith('Explanation:'):
+        concatenated_description += ''
         current_line_length = len(line)
       elif line.startswith('Tomorrow'): #Terminate at footer
         return concatenated_description
@@ -104,7 +104,7 @@ def format_description(text):
           concatenated_description += '\n' + line
           current_line_length = len(line)
         else:
-          concatenated_description += line
+          concatenated_description += ' ' + line
           current_line_length += len(line)
     return concatenated_description
   return None
