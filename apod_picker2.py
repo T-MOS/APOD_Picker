@@ -96,9 +96,11 @@ def format_description(text):
       if line.startswith('Explanation:' + '\n'):
         concatenated_description += '\n' + line
         current_line_length = len(line)
+      elif line.startswith('Tomorrow'): #Terminate at footer
+        return concatenated_description
       else:
         line = line.replace('\n', ' ') # Replace line breaks within the line with a space
-        if current_line_length + len(line) > w // 10:
+        if current_line_length + len(line) > 1920 // 10:
           concatenated_description += '\n' + line
           current_line_length = len(line)
         else:
@@ -121,7 +123,7 @@ def main():
     return
 
   formatted = format_description(description)
-  print(formatted)
+  print(description)
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
