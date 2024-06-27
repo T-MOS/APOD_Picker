@@ -10,7 +10,6 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
-
 def get_resolution():
     root = tk.Tk()
     screen_width = root.winfo_screenwidth()
@@ -32,12 +31,11 @@ if platform.system() == 'Darwin':
   w,h = get_resolution()
   get_resolution()
 
-""" Web handling """
 def fetch_apod_data():
   # Send GET request to APOD website and parse HTML response with BeautifulSoup
   try:
-    # url = 'https://apod.nasa.gov/apod/astropix.html'
-    url = 'https://apod.nasa.gov/apod/ap240625.html'
+    url = 'https://apod.nasa.gov/apod/astropix.html'
+    # url = 'https://apod.nasa.gov/apod/ap240625.html'
     response = requests.get(url)
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
@@ -92,6 +90,7 @@ def main():
   print(threading.active_count())
   root = tk.Tk()
   root.withdraw()
+  root.title('main()')
 
   w,h = get_resolution()
 
@@ -104,13 +103,11 @@ def main():
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
 
-  image_label = tk.Label(root, image=photo)
-  image_label.pack()
+  image_label = tk.Label(root, image=photo).pack(side='bottom')
   root.update_idletasks()
   root.deiconify()
 
-  description_label = tk.Label(root, text=description, wraplength=w)
-  description_label.pack()
+  description_label = tk.Label(root, text=description, wraplength=w).pack(side='top')
 
   messagebox.showinfo('Image Preview', f'Image URL: {img_url}')
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
