@@ -10,6 +10,42 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
+class ImageViewer:
+  def __init__(self, root, image_path):
+    self.root = root
+    self.root.title("Image Viewer")
+
+    # Load the original image
+    self.original_image = image_path
+    self.original_width, self.original_height = self.original_image.size
+
+    # Create a label to display the image
+    self.label = tk.Label(root)
+    self.label.pack(fill=tk.BOTH, expand=tk.YES)
+
+    # Bind the resize event
+    self.root.bind("<Configure>", self.resize_image)
+
+  def resize_image(self, event):
+    # Get the new size of the window
+    new_width = event.width
+    new_height = event.height
+
+    # Calculate the new size while maintaining the aspect ratio
+    aspect_ratio = self.original_width / self.original_height
+    if new_width / new_height > aspect_ratio:
+      new_width = int(new_height * aspect_ratio)
+    else:
+      new_height = int(new_width / aspect_ratio)
+    
+    # Resize the image
+    resized_image = self.original_image.resize((new_width, new_height))
+    self.photo = ImageTk.PhotoImage(resized_image)
+
+    # Update the label with the new image
+    self.label.config(image=self.photo)
+    self.label.image = self.photo  # Keep a reference to avoid garbage collection
+
 def get_resolution():
     root = tk.Tk()
     screen_width = root.winfo_screenwidth()
@@ -115,7 +151,6 @@ def format_description(text):
   return None
 
 def main():
-  print(threading.active_count())
   w,h = get_resolution()
   root = tk.Tk()
   img_url, description = fetch_apod_data()
@@ -128,7 +163,6 @@ def main():
   root.withdraw()
   root.title('Preview')
 
-  print(formatted)
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
@@ -150,6 +184,8 @@ def main():
   else:
     messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
   
+  ImageViewer(root, image)
+
   root.mainloop()
 
 if __name__ == "__main__":
