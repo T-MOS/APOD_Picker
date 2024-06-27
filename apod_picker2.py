@@ -171,10 +171,9 @@ def main():
 
   app = ImageViewer(root, image)
 
-  # messagebox.showinfo('Image Preview', f'Image URL: {img_url}')
+  # ask to save
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
 
-  # ask to save
   if user_response == 'yes':
     image_path = select_save_path(image)
     if image_path:
