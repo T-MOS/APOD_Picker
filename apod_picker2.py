@@ -92,20 +92,25 @@ def format_description(text):
     concatenated_description = ''
     current_line_length = 0
     for line in lines:
-      line = line.strip() # Remove whitespace at the beginning and end of the line
-      if line.startswith('Explanation:'):
-        concatenated_description += ''
-        current_line_length = len(line)
-      elif line.startswith('Tomorrow'): #Terminate at footer
-        return concatenated_description
-      else:
-        line = line.replace('\n', ' ') # Replace line breaks within the line with a space
-        if current_line_length + len(line) > w // 10:
-          concatenated_description += '\n' + line
+      if len(line) >0:
+        line = line.strip() # Remove whitespace at the beginning and end of the line
+        if line.startswith('Explanation:'):
+          concatenated_description += ''
+          print(concatenated_description)
           current_line_length = len(line)
+        elif line.startswith('Tomorrow'):
+          return concatenated_description
         else:
-          concatenated_description += ' ' + line
-          current_line_length += len(line)
+          # line = line.replace('\n', ' ') # Replace line breaks within the line with a space
+          if current_line_length + len(line) > 1920 // 10:
+            concatenated_description += '\n' + line
+            current_line_length = len(line)
+          else:
+              if concatenated_description == '':
+                concatenated_description += line
+              else:
+                concatenated_description += " "+line
+                current_line_length += len(line)
     return concatenated_description
   return None
 
@@ -123,11 +128,12 @@ def main():
     return
 
   formatted = format_description(description)
+  print(formatted)
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   photo = ImageTk.PhotoImage(image)
   
-  description_label = tk.Label(root, text=formatted, wraplength=w).pack(side='top')
+  description_label = tk.Label(root, text=formatted, justify='left', wraplength=w).pack(side='top')
   image_label = tk.Label(root, image=photo).pack(side='bottom')
   root.update_idletasks()
   root.deiconify()
