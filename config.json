@@ -1,0 +1,5 @@
+{
+  "default_dir_path": "\\windows\\path\\here, /linux/unix/path/here",
+
+  "max_days_saved": "(integer)#  of days to save"
+}
