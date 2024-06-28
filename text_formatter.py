@@ -1,3 +1,5 @@
+import re
+
 description = """ Explanation: 
 Jets of material blasting
 from newborn stars, are captured in this James Webb Space Telescope
@@ -85,7 +87,17 @@ def simple_formatter(text):
             concatenated_description += " " + line
     return concatenated_description
   return None
-simple = simple_formatter(description)
-stupid = OLD_format_description(description)
-with open('simple.txt', 'a') as f:
-  print(simple + "\n" + stupid, file=f)
+# simple = simple_formatter(description)
+# stupid = OLD_format_description(description)
+# with open('simple.txt', 'a') as f:
+#   print(simple + "\n" + stupid, file=f)
+
+filename = "13b/Olbers Comet?"
+
+def sanitize_filename(input_string):
+  # Define disallowed filename chars' regex pattern
+  pattern = r'[\\/:*?"<>| ]'
+  sanitized = re.sub(pattern, "_", input_string)
+  return sanitized
+
+print(sanitize_filename(filename))
