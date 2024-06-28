@@ -19,9 +19,10 @@ class ImageViewer:
     # Load the original image
     self.original_image = image_path
     self.original_width, self.original_height = self.original_image.size
+    self.photo = self.original_image
 
     # Create a labels to display the image and description
-    self.desc_label = tk.Label(root, text=self.description, bg='dim grey',fg="white", font=('Arial bold', 11))
+    self.desc_label = tk.Label(root, text=self.description, bg='dim grey',fg="white", font=('Arial Bold',), justify='center')
     self.desc_label.pack(side="top", fill='x')
     self.image_label = tk.Label(root, bg="grey23")
     self.image_label.pack(fill=tk.BOTH, expand=tk.YES)
