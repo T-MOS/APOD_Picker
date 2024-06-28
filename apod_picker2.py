@@ -142,8 +142,11 @@ def set_desktop_background(image_path):
 
 def sanitize_filename(input_string):
   # Define disallowed filename chars' regex pattern
-  pattern = r'[\\/:*?"<>| ]'
-  sanitized = re.sub(pattern, "_", input_string)
+  unsanitized = input_string.strip()
+  pattern1 = r'[\:*?"<>|]'
+  rinsed = re.sub(pattern1, "", unsanitized)
+  pattern2 = r'[ \/]'
+  sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
 def select_save_path(input, default_file_name):
