@@ -1,6 +1,7 @@
 import ctypes
 import os
 import platform
+import re
 import tkinter as tk
 from io import BytesIO
 from tkinter import messagebox, scrolledtext, filedialog
@@ -139,9 +140,15 @@ def set_desktop_background(image_path):
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
+def sanitize_filename(input_string):
+  # Define disallowed filename chars' regex pattern
+  pattern = r'[\\/:*?"<>| ]'
+  sanitized = re.sub(pattern, "_", input_string)
+  return sanitized
+
 def select_save_path(input, default_file_name):
   # default_file_name = default_file_name
-  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= default_file_name)
+  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(default_file_name))
   if file_path:
     try:
       input.save(file_path)
@@ -150,6 +157,7 @@ def select_save_path(input, default_file_name):
     except Exception as e:
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
+
 
 def main():
   w,h = get_resolution()
