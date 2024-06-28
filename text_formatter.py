@@ -92,12 +92,15 @@ def simple_formatter(text):
 # with open('simple.txt', 'a') as f:
 #   print(simple + "\n" + stupid, file=f)
 
-filename = "13b/Olbers Comet?"
+filename = " 13b/Olbers Comet? "
 
 def sanitize_filename(input_string):
   # Define disallowed filename chars' regex pattern
-  pattern = r'[\\/:*?"<>| ]'
-  sanitized = re.sub(pattern, "_", input_string)
+  unsanitized = input_string.strip()
+  pattern1 = r'[\:*?"<>|]'
+  rinsed = re.sub(pattern1, "", unsanitized)
+  pattern2 = r'[ \/]'
+  sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
 print(sanitize_filename(filename))
