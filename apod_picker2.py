@@ -50,7 +50,6 @@ class ImageViewer:
     self.image_label.config(image=self.photo)
     self.image_label.image = self.photo  # Keep a reference to avoid garbage collection
     self.desc_label.config(wraplength=self.root.winfo_width() - 20)
-    # print(self.root.winfo_width(), new_width)
 
   def simple_formatter(self, text):
     if text:
