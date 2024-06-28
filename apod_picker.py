@@ -133,7 +133,6 @@ def config_access():
     config = json.load(f)
   return config.get('default_dir_path', os.getcwd())
 
-
 def select_save_path(input, title):
   file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=config_access())
   if file_path:
