@@ -122,31 +122,22 @@ def select_save_path(input):
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
 
-def format_description(text):
+def simple_formatter(text):
   if text:
     lines = text.splitlines()
     concatenated_description = ''
-    current_line_length = 0
     for line in lines:
       if len(line) >0:
         line = line.strip() # Remove whitespace at the beginning and end of the line
         if line.startswith('Explanation:'):
           concatenated_description += ''
-          print(concatenated_description)
-          current_line_length = len(line)
         elif line.startswith('Tomorrow'):
           return concatenated_description
         else:
-          # line = line.replace('\n', ' ') # Replace line breaks within the line with a space
-          if current_line_length + len(line) > 1920 // 10:
-            concatenated_description += '\n' + line
-            current_line_length = len(line)
+          if concatenated_description ==  "":
+            concatenated_description += line
           else:
-              if concatenated_description == '':
-                concatenated_description += line
-              else:
-                concatenated_description += " "+line
-                current_line_length += len(line)
+            concatenated_description += " " + line
     return concatenated_description
   return None
 
@@ -157,7 +148,7 @@ def main():
   if not img_url:
     root.destroy()
     return
-  formatted = format_description(description)
+  formatted = simple_formatter(description)
 
   # initial-s-ize
   root.geometry(f"{w//2}x{h//2}")
@@ -182,7 +173,6 @@ def main():
   # else:
   #   messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
   
-
   root.mainloop()
 
 if __name__ == "__main__":
