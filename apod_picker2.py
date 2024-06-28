@@ -11,9 +11,9 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
 class ImageViewer:
-  def __init__(self, root, image_path, text):
+  def __init__(self, root, image_path, text, title):
     self.root = root
-    self.root.title("Image Previewer")
+    self.root.title(title)
     self.description = self.simple_formatter(text)
 
     # Load the original image
@@ -100,17 +100,21 @@ def fetch_apod_data():
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
+    title_container = soup.find('center')
     if img_tag is not None:
+      # Find image's title in <center> w/ child <b>
+      post_title = title_container.find_next('b').text.strip()
+      print(post_title)
       # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
       a = img_tag.find_parent('a')
       img_url = 'https://apod.nasa.gov/apod/' + a['href']
       description = img_tag.find_next('p').text.strip()
-      return img_url, description
+      return img_url, description, post_title
     else:
       messagebox.showerror("Error", "The post contains no accepted image formats")
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
-  return None, None
+  return None, None, None
 
 def set_desktop_background(image_path):
   try:  
@@ -135,8 +139,9 @@ def set_desktop_background(image_path):
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
-def select_save_path(input):
-  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")])
+def select_save_path(input, default_file_name):
+  # default_file_name = default_file_name
+  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= default_file_name)
   if file_path:
     try:
       input.save(file_path)
@@ -149,7 +154,7 @@ def select_save_path(input):
 def main():
   w,h = get_resolution()
   root = tk.Tk()
-  img_url, description = fetch_apod_data()
+  img_url, description, post_title = fetch_apod_data()
   if not img_url:
     root.destroy()
     return
@@ -163,12 +168,12 @@ def main():
   root.geometry(f"{w//2}x{h//2}")
   # root.withdraw()
 
-  app = ImageViewer(root, image, description)
+  app = ImageViewer(root, image, description, post_title)
 
   # ask to save
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
   if user_response == 'yes':
-    image_path = select_save_path(image)
+    image_path = select_save_path(image, post_title)
     if image_path:
       set_desktop_background(image_path)
       image.close()
