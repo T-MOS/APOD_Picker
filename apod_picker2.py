@@ -11,17 +11,20 @@ from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
 class ImageViewer:
-  def __init__(self, root, image_path):
+  def __init__(self, root, image_path, text):
     self.root = root
     self.root.title("Image Previewer")
+    self.description = self.simple_formatter(text)
 
     # Load the original image
     self.original_image = image_path
     self.original_width, self.original_height = self.original_image.size
 
-    # Create a label to display the image
-    self.label = tk.Label(root)
-    self.label.pack(fill=tk.BOTH, expand=tk.YES)
+    # Create a labels to display the image and description
+    self.desc_label = tk.Label(root, text=self.description, bg='dim grey',fg="white", font=('Arial bold', 11))
+    self.desc_label.pack(side="top", fill='x')
+    self.image_label = tk.Label(root, bg="grey23")
+    self.image_label.pack(fill=tk.BOTH, expand=tk.YES)
 
     # Bind the resize event
     self.root.bind("<Configure>", self.resize_image)
@@ -43,8 +46,29 @@ class ImageViewer:
     self.photo = ImageTk.PhotoImage(resized_image)
 
     # Update the label with the new image
-    self.label.config(image=self.photo)
-    self.label.image = self.photo  # Keep a reference to avoid garbage collection
+    self.image_label.config(image=self.photo)
+    self.image_label.image = self.photo  # Keep a reference to avoid garbage collection
+    self.desc_label.config(wraplength=self.root.winfo_width() - 20)
+    # print(self.root.winfo_width(), new_width)
+
+  def simple_formatter(self, text):
+    if text:
+      lines = text.splitlines()
+      concatenated_description = ''
+      for line in lines:
+        if len(line) >0:
+          line = line.strip() # Remove whitespace at the beginning and end of the line
+          if line.startswith('Explanation:'):
+            concatenated_description += ''
+          elif line.startswith('Tomorrow'):
+            return concatenated_description
+          else:
+            if concatenated_description ==  "":
+              concatenated_description += line
+            else:
+              concatenated_description += " " + line
+      return concatenated_description
+    return None
 
 def get_resolution():
     root = tk.Tk()
@@ -120,25 +144,6 @@ def select_save_path(input):
       return file_path
     except Exception as e:
       messagebox.showerror("Error", f"Failed to save image: {e}")
-  return None
-
-def simple_formatter(text):
-  if text:
-    lines = text.splitlines()
-    concatenated_description = ''
-    for line in lines:
-      if len(line) >0:
-        line = line.strip() # Remove whitespace at the beginning and end of the line
-        if line.startswith('Explanation:'):
-          concatenated_description += ''
-        elif line.startswith('Tomorrow'):
-          return concatenated_description
-        else:
-          if concatenated_description ==  "":
-            concatenated_description += line
-          else:
-            concatenated_description += " " + line
-    return concatenated_description
   return None
 
 def main():
