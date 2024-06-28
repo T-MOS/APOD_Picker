@@ -148,23 +148,20 @@ def main():
   if not img_url:
     root.destroy()
     return
-  formatted = simple_formatter(description)
+  
+  image_response = requests.get(img_url)
+  image = Image.open(BytesIO(image_response.content))
+  # photo = ImageTk.PhotoImage(image)
+  # description_label = tk.Label(root, text=formatted, justify='left', wraplength=w).pack(side='top')
 
   # initial-s-ize
   root.geometry(f"{w//2}x{h//2}")
   # root.withdraw()
 
-
-  image_response = requests.get(img_url)
-  image = Image.open(BytesIO(image_response.content))
-  photo = ImageTk.PhotoImage(image)
-  description_label = tk.Label(root, text=formatted, justify='left', wraplength=w).pack(side='top')
-
-  app = ImageViewer(root, image)
+  app = ImageViewer(root, image, description)
 
   # ask to save
   user_response = messagebox.askquestion('Set Desktop Background', 'Set this image as your desktop background?')
-
   if user_response == 'yes':
     image_path = select_save_path(image)
     if image_path:
