@@ -7,21 +7,6 @@ The powerful protostellar outflows are bipolar,
 twin jets spewing
 in opposite directions.
 
-Their directions are perpendicular to accretion disks
-formed around the
-spinning, collapsing
-stellar infants.
-
-In the NIRcam image,
-the reddish color represents emission from molecular hydrogen and
-carbon monoxide produced as the jets collide with the surrounding
-gas and dust.
-
-The sharp image
-shows for the first time that individual
-outflows detected in the Serpens Nebula are
-generally aligned along the same direction.
-
 That result was expected, but has only now come into clear view
 with Webb's
 detailed exploration
@@ -33,20 +18,7 @@ diffraction spikes.
 At the Serpens Nebula's estimated distance of 1,300 light-years, this
 cosmic close-up frame is about 1 light-year across.
 
-
  Tomorrow's picture: Olber's comet
-
-<
-| Archive
-| Submissions
-| Index
-| Search
-| Calendar
-| RSS
-| Education
-| About APOD
-| Discuss
-| >
 
  Authors & editors:
 Robert Nemiroff
@@ -96,14 +68,24 @@ def simple_formatter(text):
   if text:
     lines = text.splitlines()
     concatenated_description = ''
-    current_line_length = 0
+    # current_line_length = 0
     for line in lines:
       if len(line) >0:
         line = line.strip() # Remove whitespace at the beginning and end of the line
         if line.startswith('Explanation:'):
           concatenated_description += ''
           print(concatenated_description)
-          current_line_length = len(line)
+          # current_line_length = len(line)
         elif line.startswith('Tomorrow'):
           return concatenated_description
         else:
+          if concatenated_description ==  "":
+            concatenated_description += line
+          else:
+            concatenated_description += " " + line
+    return concatenated_description
+  return None
+simple = simple_formatter(description)
+stupid = OLD_format_description(description)
+with open('simple.txt', 'a') as f:
+  print(simple + "\n" + stupid, file=f)
