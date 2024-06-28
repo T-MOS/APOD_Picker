@@ -2,9 +2,10 @@ import ctypes
 import os
 import platform
 import re
+import json
 import tkinter as tk
 from io import BytesIO
-from tkinter import messagebox, scrolledtext, filedialog
+from tkinter import messagebox, filedialog
 import threading
 
 import requests
@@ -71,27 +72,6 @@ class ImageViewer:
       return concatenated_description
     return None
 
-def get_resolution():
-    root = tk.Tk()
-    screen_width = root.winfo_screenwidth()
-    screen_height = root.winfo_screenheight()
-    root.destroy()
-    return screen_width, screen_height
-
-# OS type == 'Windows' --> Get screen dimensions for "..."
-if platform.system() == 'Windows':
-  user32 = ctypes.windll.user32
-  w = user32.GetSystemMetrics(0)
-  h = user32.GetSystemMetrics(1)
-# OS type == 'Linux' --> Get screen dimensions for "..."
-if platform.system() == 'Linux':
-  w, h = get_resolution()
-  get_resolution()
-# OS type -== 'Darwin' aka MacOS --> Get screen dimensions for "..."
-if platform.system() == 'Darwin':
-  w,h = get_resolution()
-  get_resolution()
-
 def fetch_apod_data():
   # Send GET request to APOD website and parse HTML response with BeautifulSoup
   try:
@@ -105,7 +85,6 @@ def fetch_apod_data():
     if img_tag is not None:
       # Find image's title in <center> w/ child <b>
       post_title = title_container.find_next('b').text.strip()
-      print(post_title)
       # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
       a = img_tag.find_parent('a')
       img_url = 'https://apod.nasa.gov/apod/' + a['href']
@@ -149,9 +128,14 @@ def sanitize_filename(input_string):
   sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
-def select_save_path(input, default_file_name):
-  # default_file_name = default_file_name
-  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(default_file_name))
+def config_access():
+  with open('config.json', 'r') as f:
+    config = json.load(f)
+  return config.get('default_dir_path', os.getcwd())
+
+
+def select_save_path(input, title):
+  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=config_access())
   if file_path:
     try:
       input.save(file_path)
@@ -161,6 +145,26 @@ def select_save_path(input, default_file_name):
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
 
+def get_resolution():
+    root = tk.Tk()
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    root.destroy()
+    return screen_width, screen_height
+
+# Platform/OS type
+if platform.system() == 'Windows':
+  user32 = ctypes.windll.user32
+  w = user32.GetSystemMetrics(0)
+  h = user32.GetSystemMetrics(1)
+
+if platform.system() == 'Linux':
+  w, h = get_resolution()
+  get_resolution()
+
+if platform.system() == 'Darwin':
+  w,h = get_resolution()
+  get_resolution()
 
 def main():
   w,h = get_resolution()
