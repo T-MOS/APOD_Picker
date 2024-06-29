@@ -21,7 +21,7 @@ class ImageViewer:
     # Load the original image
     self.original_image = image_path
     self.original_width, self.original_height = self.original_image.size
-    self.photo = self.original_image
+    # self.photo = self.original_image
 
     # Create a labels to display the image and description
     self.desc_label = tk.Label(root, text=self.description, bg='dim grey',fg="white", font=('Arial Bold',), justify='center')
@@ -206,11 +206,13 @@ def main():
     image_path = select_save_path(image, post_title)
     if image_path:
       set_desktop_background(image_path)
-      image.close()
+      # image.close()
   # else:
   #   messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
   
   root.mainloop()
 
-if __name__ == "__main__":
-  threading.Thread(target=main).start()
+# if __name__ == "__main__":
+#   threading.Thread(target=main).start()
+
+main()
