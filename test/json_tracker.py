@@ -1,24 +1,22 @@
 import json
 import os
 
-jsonPath = 'savesList.json'
+jsonPath = "test\\savesList.json"
 
-def update_saves(saved):
+def update_config(saved):
   with open(jsonPath, 'r') as f:
-    savesObj = json.load(f)
+    configObj = json.load(f)
+  
+  paths = configObj['paths']
 
-  if len(savesObj['paths']) == savesObj['max']:
-    oldest = savesObj['paths'].pop()
+  if len(paths) == configObj['max']:
+    oldest = configObj['paths'][-1]
     if os.path.exists(oldest):
       os.remove(oldest)
-      print(f"deleted oldest file:{oldest}")
-    else:
-      print('no oldest')
+      paths.insert(0,saved)
+      paths = paths[:5]
 
-  # recent_saves.insert(0,saved)
-  # recent_saves = recent_saves[:5]
+  with open(jsonPath, 'w') as out:
+    json.dump(configObj, out, indent=2)
 
-  # with open(jsonPath, 'w') as out:
-  #   json.dump(recent_saves, out, indent=2)
-
-update_saves('path/deletion_test.txt')
+update_config('path/newest')
