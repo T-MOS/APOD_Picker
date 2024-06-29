@@ -134,11 +134,17 @@ def sanitize_filename(input_string):
 #   print(config.get('default_dir_path'))#, os.getcwd())
 #   return config.get('default_dir_path')
 def default_dir_initializer():
+  try:
+    with open('config.json', 'r') as f:
+      configObj = json.load(f)
+  except (FileNotFoundError, json.JSONDecodeError):
+    configObj = {"default_dir_path": "","keep": 2,"paths": []}  
+  
   current_dir = os.path.dirname(os.path.realpath(__file__))
   default_relative_path = os.path.join(current_dir, 'test')
+  configObj['default_dir_path'] = default_relative_path
+  
   with open("config.json", 'w') as f:
-    configObj = json.load(f)
-    configObj['default_dir_path'] = default_relative_path
     json.dump(configObj, f, indent=2)
   return default_relative_path
 
@@ -158,10 +164,13 @@ def update_config(saved):
     json.dump(configObj, out, indent=2)
 
 def select_save_path(input, title):
-  with open('config.json', 'r') as f:
-    configObj = json.load(f)
-    defaultDir = configObj.get('default_dir_path')
-  if configObj['default_dir_path'] == "":
+  try:
+    with open('config.json', 'r') as f:
+      configObj = json.load(f)
+  except (FileNotFoundError, json.JSONDecodeError):
+    configObj = {"default_dir_path": "","keep": 2,"paths": []}
+  defaultDir = configObj.get('default_dir_path')
+  if defaultDir == "":
     defaultDir = default_dir_initializer()
   else:
     file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=defaultDir)
