@@ -147,14 +147,13 @@ def update_config(saved):
   with open('config.json', 'r') as f:
     configObj = json.load(f)
   paths = configObj['paths']
-
-  if len(paths) >= configObj['keep']:
+  keep = configObj['keep']
+  if len(paths) >= keep:
     oldest = configObj['paths'][-1]
     if os.path.exists(oldest):
       os.remove(oldest)
   paths.insert(0,saved)
-  configObj['paths']=paths[:5]
-
+  configObj['paths']=paths[:keep]
   with open('config.json', 'w') as out:
     json.dump(configObj, out, indent=2)
 
@@ -171,8 +170,8 @@ def select_save_path(input, title):
   file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=defaultDir)
   if file_path:
     try:
+      update_config(file_path)
       input.save(file_path)
-      print(f"Image saved to: {file_path}")
       return file_path
     except Exception as e:
       messagebox.showerror("Error", f"Failed to save image: {e}")
