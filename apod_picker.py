@@ -136,7 +136,8 @@ def default_dir_initializer():
     configObj = {"default_dir_path": "","keep": 2,"paths": []}  
   
   current_dir = os.path.dirname(os.path.realpath(__file__))
-  default_relative_path = os.path.join(current_dir, 'test')
+  default_relative_path = os.path.join(current_dir, 'saves')
+  make_saves_dir = os.makedirs(default_relative_path, exist_ok=True)
   configObj['default_dir_path'] = default_relative_path
   
   with open("config.json", 'w') as f:
@@ -167,6 +168,9 @@ def select_save_path(input, title):
   defaultDir = configObj.get('default_dir_path')
   if defaultDir == "":
     defaultDir = default_dir_initializer()
+  else:
+    if os.path.exists(defaultDir) == False:
+      os.makedirs(defaultDir,exist_ok=True)
   file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=defaultDir)
   if file_path:
     try:
