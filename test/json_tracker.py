@@ -19,4 +19,4 @@ def update_config(saved):
   with open(jsonPath, 'w') as out:
     json.dump(configObj, out, indent=2)
 
-update_config('path/newest')
+update_config('path/')
