@@ -128,11 +128,6 @@ def sanitize_filename(input_string):
   sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
-# def default_path():
-#   with open('config.json', 'r') as f:
-#     config = json.load(f)
-#   print(config.get('default_dir_path'))#, os.getcwd())
-#   return config.get('default_dir_path')
 def default_dir_initializer():
   try:
     with open('config.json', 'r') as f:
