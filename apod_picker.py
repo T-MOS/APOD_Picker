@@ -206,7 +206,6 @@ def main():
     image_path = select_save_path(image, post_title)
     if image_path:
       set_desktop_background(image_path)
-      # image.close()
   # else:
   #   messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
   
