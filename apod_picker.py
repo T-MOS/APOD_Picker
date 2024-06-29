@@ -169,11 +169,11 @@ def select_save_path(input, title):
       configObj = json.load(f)
   except (FileNotFoundError, json.JSONDecodeError):
     configObj = {"default_dir_path": "","keep": 2,"paths": []}
+  
   defaultDir = configObj.get('default_dir_path')
   if defaultDir == "":
     defaultDir = default_dir_initializer()
-  else:
-    file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=defaultDir)
+  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=defaultDir)
   if file_path:
     try:
       input.save(file_path)
