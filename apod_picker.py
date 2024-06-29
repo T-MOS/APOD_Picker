@@ -128,13 +128,29 @@ def sanitize_filename(input_string):
   sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
-def config_access():
+def default_path():
   with open('config.json', 'r') as f:
     config = json.load(f)
   return config.get('default_dir_path', os.getcwd())
 
+def update_config(saved):
+  with open(jsonPath, 'r') as f:
+    configObj = json.load(f)
+  
+  paths = configObj['paths']
+
+  if len(paths) >= configObj['keep']:
+    oldest = configObj['paths'][-1]
+    if os.path.exists(oldest):
+      os.remove(oldest)
+  paths.insert(0,saved)
+  configObj['paths']=paths[:5]
+
+  with open(jsonPath, 'w') as out:
+    json.dump(configObj, out, indent=2)
+
 def select_save_path(input, title):
-  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=config_access())
+  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=default_path())
   if file_path:
     try:
       input.save(file_path)
