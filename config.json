@@ -1,6 +1,5 @@
 {
-  "default_dir_path": "\\windows\\path\\here, /linux/unix/path/here",
-  "keep": 5,
-  "paths": [
-  ]
+  "default_dir_path": "",
+  "keep": 2,
+  "paths": []
 }
