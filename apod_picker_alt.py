@@ -4,7 +4,7 @@ import platform
 import re
 import json
 from io import BytesIO
-from tkinter import messagebox, filedialog
+from tkinter import messagebox
 
 import requests
 from bs4 import BeautifulSoup
@@ -49,7 +49,6 @@ def set_desktop_background(image_path):
       end tell
       """
       os.system(f"/usr/bin/osascript -e '{script}'")
-    messagebox.showinfo('Set Background Successful', 'Desktop background has been set.')
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
