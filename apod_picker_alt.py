@@ -37,7 +37,7 @@ def fetch_apod_data():
 def set_desktop_background(image_path):
   try:  
     if platform.system() == 'Linux':
-      setterCommand = f'pcmanfm --set-background {image_path}'
+      setterCommand = f'pcmanfm --set-wallpaper {image_path}'
       os.system(setterCommand)
     elif platform.system() == 'Windows':
       SPI_SETDESKWALLPAPER = 0x0014
