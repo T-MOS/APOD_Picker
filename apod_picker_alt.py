@@ -104,7 +104,7 @@ def select_save_path(input, title):
   else:
     if os.path.exists(defaultDir) == False:
       os.makedirs(defaultDir,exist_ok=True)
-  file_path = filedialog.asksaveasfilename(defaultextension='.jpg', filetypes=[("JPEG","*.jpg"),("All files","*.*")],initialfile= sanitize_filename(title), initialdir=defaultDir)
+  file_path = os.path.join(defaultDir, sanitize_filename(title) + '.jpg')
   if file_path:
     try:
       update_config(file_path)
