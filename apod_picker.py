@@ -3,12 +3,13 @@ import os
 import platform
 import re
 import json
+import requests
+import random
 import tkinter as tk
 from io import BytesIO
 from tkinter import messagebox, filedialog
-import threading
 
-import requests
+
 from bs4 import BeautifulSoup
 from PIL import Image, ImageTk
 
@@ -72,26 +73,43 @@ class ImageViewer:
       return concatenated_description
     return None
 
+def urlRandomizer():
+  dd = random.randint(1,31)
+  mm = random.randint(1,12)
+  yy = random.randint(0,24)
+  ddStr = str(dd).zfill(2)
+  mmStr = str(mm).zfill(2)
+  yyStr = str(yy).zfill(2)
+  jointDate = yyStr+mmStr+ddStr
+  urlFormatted = f"ap{jointDate}.html"
+  return urlFormatted
+
 def fetch_apod_data():
-  # Send GET request to APOD website and parse HTML response with BeautifulSoup
+  testCase1 = 'https://apod.nasa.gov/apod/2406' # server error test
+  testCase2 = 'https://apod.nasa.gov/apod/ap240626.html' # no image tag test 
+
+  # Send GET request to APOD; parse HTML w/ BeautifulSoup
+  baseUrl = 'https://apod.nasa.gov/apod/'
   try:
-    url = 'https://apod.nasa.gov/apod/astropix.html'
-    # url = 'https://apod.nasa.gov/apod/ap240625.html'
-    response = requests.get(url)
+    response = requests.get(baseUrl)
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
-    title_container = soup.find('center')
-    if img_tag is not None:
-      # Find image's title in <center> w/ child <b>
-      post_title = title_container.find_next('b').text.strip()
-      # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
-      a = img_tag.find_parent('a')
-      img_url = 'https://apod.nasa.gov/apod/' + a['href']
-      description = img_tag.find_next('p').text.strip()
-      return img_url, description, post_title
-    else:
-      messagebox.showerror("Error", "The post contains no accepted image formats")
+    while img_tag is None: # no image = repeat w/ random
+      try:
+        randomPost = baseUrl + urlRandomizer()
+        response = requests.get(randomPost)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+        img_tag = soup.find('img')
+      except requests.RequestException as e:
+        messagebox.showerror("Error",f"{e}")
+    else: # get goodies
+      post_title = soup.find('b').text.strip() # title in: "<center> w/ child <b>"
+      description = img_tag.find_next('p').text.strip() # description text from: descendant <p>
+      a = img_tag.find_parent('a') # parent's href = full resolution (<a>[href] !== <img>[src])
+      img_url = baseUrl + a['href'] # <- download/save from
+      return img_url, description, post_title 
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
   return None, None, None
@@ -99,7 +117,7 @@ def fetch_apod_data():
 def set_desktop_background(image_path):
   try:  
     if platform.system() == 'Linux':
-      setterCommand = f'pcmanfm --set-wallpaper {image_path}'
+      setterCommand = f'pcmanfm --set-background {image_path}'
       os.system(setterCommand)
     elif platform.system() == 'Windows':
       SPI_SETDESKWALLPAPER = 0x0014
@@ -110,21 +128,16 @@ def set_desktop_background(image_path):
         set desktop picture to POSIX file "{image_path}"
       end tell
       """
-      # new alt
-      # script = 'tell application "Finder" set desktop picture to POSIX file "%s" end tell' % path
-      # 2nd new alt
-      # script = f'tell application "Finder" set desktop picture to POSIX file {path} end tell'
       os.system(f"/usr/bin/osascript -e '{script}'")
     messagebox.showinfo('Set Background Successful', 'Desktop background has been set.')
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
 def sanitize_filename(input_string):
-  # Define disallowed filename chars' regex pattern
-  unsanitized = input_string.strip()
-  pattern1 = r'[\:*?"<>|]'
+  unsanitized = input_string.strip() # remove lead/trail whitespace
+  pattern1 = r'[\:*?"<>|]' # 1st RE for... disallowed chars
   rinsed = re.sub(pattern1, "", unsanitized)
-  pattern2 = r'[ \/]'
+  pattern2 = r'[ \/]' # 2nd RE for... fwd_slash --> underscore
   sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
@@ -231,8 +244,5 @@ def main():
   #   messagebox.showinfo('Set Background Declined','Desktop background has not been changed.')
   
   root.mainloop()
-
-# if __name__ == "__main__":
-#   threading.Thread(target=main).start()
 
 main()
