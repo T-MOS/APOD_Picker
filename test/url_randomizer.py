@@ -17,26 +17,31 @@ def urlRandomizer():
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
+
 def fetch_apod_data():
   # Send GET request to APOD website and parse HTML response with BeautifulSoup
+  baseUrl = 'https://apod.nasa.gov/apod/'
+  test_url = 'https://apod.nasa.gov/apod/2406'
   try:
-    url = 'https://apod.nasa.gov/apod/astropix.html'
-    response = requests.get(url)
+    response = requests.get(baseUrl)
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
     if img_tag is not None:
       # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
       a = img_tag.find_parent('a')
-      img_url = 'https://apod.nasa.gov/apod/' + a['href']
+      img_url = baseUrl + a['href']
       description = img_tag.find_next('p').text.strip()
       return img_url, description
-    else:
-      
-      # messagebox.showerror("Error", "The post contains no accepted image formats")
+    while img_tag is None:
+      try:
+        randomPost = baseUrl + urlRandomizer()
+        response = requests.get(randomPost)
+        response.raise_for_status()
+      except requests.RequestException as e:
+        messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
   return None, None
-
 
 i,d = fetch_apod_data()
