@@ -38,13 +38,16 @@ def fetch_apod_data():
       except requests.RequestException as e:
         messagebox.showerror("Error",f"{e}")
     else:
+      # Find image's title in <center> w/ child <b>
+      post_title = soup.find('b').text.strip()
+      # Extract description text
+      description = img_tag.find_next('p').text.strip()
       # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
       a = img_tag.find_parent('a')
       img_url = baseUrl + a['href']
-      description = img_tag.find_next('p').text.strip()
-      return img_url, description      
+      return img_url, description, post_title 
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
-  return None, None
+  return None, None, None
 
 print(fetch_apod_data())
