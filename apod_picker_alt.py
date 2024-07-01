@@ -72,10 +72,10 @@ def set_desktop_background(image_path):
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
 def sanitize_filename(input_string):
-  unsanitized = input_string.strip() # for: lead/trail whitespace
-  pattern1 = r'[\:*?"<>|]' # 1st disallowed chars' RE pattern
+  unsanitized = input_string.strip() # remove lead/trail whitespace
+  pattern1 = r'[\:*?"<>|]' # 1st RE for... disallowed chars
   rinsed = re.sub(pattern1, "", unsanitized)
-  pattern2 = r'[ \/]' # 2nd RE for: fwd_slash --> space
+  pattern2 = r'[ \/]' # 2nd RE for... fwd_slash --> underscore
   sanitized = re.sub(pattern2, '_', rinsed)
   return sanitized
 
