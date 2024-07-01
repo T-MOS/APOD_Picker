@@ -12,14 +12,22 @@ from bs4 import BeautifulSoup
 from PIL import Image
 
 def urlRandomizer():
-  dd = random.randint(1,31)
+  yearsElapsed = datetime.now().year - 1995
+  yy = random.randint(0,yearsElapsed)
+  if yy < 10:
+    yyStr = str(yy).zfill(2)
+  elif 9 < yy < 100:
+    yyStr = str(yy)[-2:]
+  else: # in case APOD's still kicking in 2,100
+    yyStr = str(yy)[-3:]
   mm = random.randint(1,12)
-  yy = random.randint(0,24)
-  ddStr = str(dd).zfill(2)
+  dd = random.randint(1,31)
   mmStr = str(mm).zfill(2)
-  yyStr = str(yy).zfill(2)
+  ddStr = str(dd).zfill(2)
+
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
+  print(dd, ddStr, mm, mmStr, yy, yyStr)
   return urlFormatted
 
 def fetch_apod_data():
