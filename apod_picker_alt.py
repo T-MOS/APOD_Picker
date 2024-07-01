@@ -10,29 +10,56 @@ import requests
 from bs4 import BeautifulSoup
 from PIL import Image
 
+import random
+import requests
+from tkinter import messagebox
+from bs4 import BeautifulSoup
+
+# example archive url format, replace '240623' with appropriate format generated suffix (e.g, ".../ap{YYMMDD}.html")
+""" https://apod.nasa.gov/apod/ap240623.html """
+
+# beginning (ideally) 5/20/95 -> curr
+def urlRandomizer():
+  dd = random.randint(1,31)
+  mm = random.randint(1,12)
+  yy = random.randint(0,24)
+  ddStr = str(dd).zfill(2)
+  mmStr = str(mm).zfill(2)
+  yyStr = str(yy).zfill(2)
+  jointDate = yyStr+mmStr+ddStr
+  urlFormatted = f"ap{jointDate}.html"
+  return urlFormatted
+
 def fetch_apod_data():
-  # Send GET request to APOD website and parse HTML response with BeautifulSoup
+  testCase1 = 'https://apod.nasa.gov/apod/2406' # server error test
+  testCase2 = 'https://apod.nasa.gov/apod/ap240626.html' # no image tag test 
+
+  # Send GET request to APOD; parse HTML w/ BeautifulSoup
+  baseUrl = 'https://apod.nasa.gov/apod/'
   try:
-    # url = 'https://apod.nasa.gov/apod/astropix.html'
-    test_url = 'https://apod.nasa.gov/apod/ap240625.html'
-    response = requests.get(test_url)
+    response = requests.get(baseUrl)
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
-    title_container = soup.find('center')
-    if img_tag is not None:
-      # Find image's title in <center> w/ child <b>
-      post_title = title_container.find_next('b').text.strip()
-      # Grab parent (<a>[href]) rather than <img>[src] for FULL RES URL
-      a = img_tag.find_parent('a')
-      img_url = 'https://apod.nasa.gov/apod/' + a['href']
-      description = img_tag.find_next('p').text.strip()
-      return img_url, description, post_title
-    else:
-      messagebox.showerror("Error", "The post contains no accepted image formats")
+    while img_tag is None: # no image = repeat w/ random
+      try:
+        randomPost = baseUrl + urlRandomizer()
+        response = requests.get(randomPost)
+        response.raise_for_status()
+        soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+        img_tag = soup.find('img')
+      except requests.RequestException as e:
+        messagebox.showerror("Error",f"{e}")
+    else: # get goodies
+      post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
+      description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
+      a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
+      img_url = baseUrl + a['href'] # <- download/save from
+      return img_url, description, post_title 
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
   return None, None, None
+
 
 def set_desktop_background(image_path):
   try:  
