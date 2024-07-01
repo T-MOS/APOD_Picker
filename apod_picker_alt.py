@@ -3,22 +3,14 @@ import os
 import platform
 import re
 import json
+import random
+import requests
 from io import BytesIO
 from tkinter import messagebox
 
-import requests
 from bs4 import BeautifulSoup
 from PIL import Image
 
-import random
-import requests
-from tkinter import messagebox
-from bs4 import BeautifulSoup
-
-# example archive url format, replace '240623' with appropriate format generated suffix (e.g, ".../ap{YYMMDD}.html")
-""" https://apod.nasa.gov/apod/ap240623.html """
-
-# beginning (ideally) 5/20/95 -> curr
 def urlRandomizer():
   dd = random.randint(1,31)
   mm = random.randint(1,12)
