@@ -28,7 +28,6 @@ def urlRandomizer():
 
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
-  # print(dd, ddStr, mm, mmStr, yy, yyStr)
   return urlFormatted
 
 def fetch_apod_data(use_random=False):
@@ -50,7 +49,7 @@ def fetch_apod_data(use_random=False):
         img_tag = soup.find('img')
       except requests.RequestException as e:
         messagebox.showerror("Error",f"{e}")
-    else: # get goodies
+    else:
       post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
       description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
       a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
@@ -125,7 +124,7 @@ def select_save_path(input, title):
       messagebox.showerror("Error", f"Failed to load configuration file.")
   
   defaultDir = configObj.get('default_dir_path')
-  if defaultDir == "":
+  if defaultDir == "": #empty str = first run or missing config
     defaultDir = default_dir_initializer()
   else:
     if os.path.exists(defaultDir) == False:
@@ -145,17 +144,18 @@ def main():
     with open('config.json', 'r') as f:
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError):
-    configObj = {'default_dir_path': '', 'keep': 2, 'paths': []} 
+    configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
+
   img_url, description, post_title = fetch_apod_data(use_random=False)
+  
   if not img_url:
     return
 
-  for path in configObj['paths']:
-    if sanitize_filename(post_title) not in path:
+  for path in configObj['paths']: 
+    if sanitize_filename(post_title) not in path:# check for duplicate
       continue
     else:
       img_url, description, post_title = fetch_apod_data(use_random=True)
-      print(img_url, description, post_title)
       break
 
   image_response = requests.get(img_url)
