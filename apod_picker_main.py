@@ -28,24 +28,23 @@ def urlRandomizer():
 
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
-  print(dd, ddStr, mm, mmStr, yy, yyStr)
+  # print(dd, ddStr, mm, mmStr, yy, yyStr)
   return urlFormatted
 
-def fetch_apod_data():
-  testCase1 = 'https://apod.nasa.gov/apod/2406' # server error test
-  testCase2 = 'https://apod.nasa.gov/apod/ap240626.html' # no image tag test 
-
+def fetch_apod_data(use_random=False):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  try:
+  if use_random:
+    random_post = baseUrl + urlRandomizer()
+    response = requests.get(random_post)
+  else:
     response = requests.get(baseUrl)
+  try:
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
-    while img_tag is None: # no image = repeat w/ random
+    while img_tag is None: # no usable image --> repeat w/ random
       try:
-        randomPost = baseUrl + urlRandomizer()
-        response = requests.get(randomPost)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
@@ -80,7 +79,7 @@ def set_desktop_background(image_path):
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
-def sanitize_filename(input_string):
+def sanitize_filename(input_string): #(post_title)
   unsanitized = input_string.strip() # remove lead/trail whitespace
   pattern1 = r'[\:*?"<>|]' # 1st RE for... disallowed chars
   rinsed = re.sub(pattern1, "", unsanitized)
@@ -122,8 +121,8 @@ def select_save_path(input, title):
   try:
     with open('config.json', 'r') as f:
       configObj = json.load(f)
-  except (FileNotFoundError, json.JSONDecodeError):
-    configObj = {"default_dir_path": "","keep": 2,"paths": []}
+  except(FileNotFoundError, json.JSONDecodeError):
+      messagebox.showerror("Error", f"Failed to load configuration file.")
   
   defaultDir = configObj.get('default_dir_path')
   if defaultDir == "":
@@ -142,9 +141,23 @@ def select_save_path(input, title):
   return None
 
 def main():
-  img_url, description, post_title = fetch_apod_data()
+  try:
+    with open('config.json', 'r') as f:
+      configObj = json.load(f)
+  except(FileNotFoundError, json.JSONDecodeError):
+    configObj = {'default_dir_path': '', 'keep': 2, 'paths': []} 
+  img_url, description, post_title = fetch_apod_data(use_random=False)
   if not img_url:
     return
+
+  for path in configObj['paths']:
+    if sanitize_filename(post_title) not in path:
+      continue
+    else:
+      img_url, description, post_title = fetch_apod_data(use_random=True)
+      print(img_url, description, post_title)
+      break
+
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   image_path = select_save_path(image, post_title)
