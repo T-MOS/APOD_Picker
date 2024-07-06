@@ -129,7 +129,7 @@ def select_save_path(input, title):
   else:
     if os.path.exists(defaultDir) == False:
       os.makedirs(defaultDir,exist_ok=True)
-  file_path = os.path.join(defaultDir, sanitize_filename(title) + '.jpg')
+  file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
     try:
       update_config(file_path)
@@ -147,12 +147,13 @@ def main():
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
 
   img_url, description, post_title = fetch_apod_data(use_random=False)
+  clean_filename = sanitize_filename(post_title)
   
   if not img_url:
     return
 
   for path in configObj['paths']: 
-    if sanitize_filename(post_title) not in path:# check for duplicate
+    if clean_filename not in path:# check for duplicate
       continue
     else:
       img_url, description, post_title = fetch_apod_data(use_random=True)
@@ -160,7 +161,7 @@ def main():
 
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
-  image_path = select_save_path(image, post_title)
+  image_path = select_save_path(image, clean_filename)
   if image_path:
     set_desktop_background(image_path)
 
