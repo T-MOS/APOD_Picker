@@ -5,6 +5,7 @@ import re
 import json
 import random
 import requests
+from itertools import count
 from datetime import datetime
 from io import BytesIO
 from tkinter import messagebox
@@ -29,10 +30,12 @@ def urlRandomizer():
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
+calls = itertools.count()
+
 def fetch_apod_data(use_random=False):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  
+  print(f'ran fetch()... {next(calls)} times')
   try:
     if use_random:
       random_post = baseUrl + urlRandomizer()
@@ -50,7 +53,9 @@ def fetch_apod_data(use_random=False):
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
       except requests.RequestException as e:  
-        messagebox.showerror("Error",f"{e}")
+        # messagebox.showerror("Error",f"{e}")
+        print("Error",f"{e}")
+        fetch_apod_data(use_random=True)
 
     post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
