@@ -25,7 +25,6 @@ def urlRandomizer():
   dd = random.randint(1,31)
   mmStr = str(mm).zfill(2)
   ddStr = str(dd).zfill(2)
-
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
@@ -33,31 +32,34 @@ def urlRandomizer():
 def fetch_apod_data(use_random=False):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  if use_random:
-    random_post = baseUrl + urlRandomizer()
-    response = requests.get(random_post)
-  else:
-    response = requests.get(baseUrl)
+  
   try:
+    if use_random:
+      random_post = baseUrl + urlRandomizer()
+      response = requests.get(random_post)
+    else:
+      response = requests.get(baseUrl)
+    
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
+    
     while img_tag is None: # no usable image --> repeat w/ random
       try:
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
-      except requests.RequestException as e:
+      except requests.RequestException as e:  
         messagebox.showerror("Error",f"{e}")
-    else:
-      post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
-      description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
-      a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
-      img_url = baseUrl + a['href'] # <- download/save from
-      return img_url, description, post_title 
+
+    post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
+    description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
+    a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
+    img_url = baseUrl + a['href'] # <- download/save from
+    return img_url, description, post_title 
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
-  return None, None, None
+    return None, None, None
 
 
 def set_desktop_background(image_path):
@@ -148,7 +150,7 @@ def main():
 
   img_url, description, post_title = fetch_apod_data(use_random=False)
   clean_filename = sanitize_filename(post_title)
-  
+
   if not img_url:
     return
 
