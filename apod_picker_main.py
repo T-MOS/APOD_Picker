@@ -17,11 +17,11 @@ def urlRandomizer():
   yearsElapsed = datetime.now().year - 1995
   yy = random.randint(0,yearsElapsed)
   if yy < 10:
-    yyStr = str(yy).zfill(2)
+    yyStr = str(1995+yy)[-2:]
   elif 9 < yy < 100:
-    yyStr = str(yy)[-2:]
+    yyStr = str(1995+yy)[-2:]
   else: # in case APOD's still kicking in 2,100
-    yyStr = str(yy)[-3:]
+    yyStr = str(1995+yy)[-3:]
   mm = random.randint(1,12)
   dd = random.randint(1,31)
   mmStr = str(mm).zfill(2)
@@ -30,7 +30,7 @@ def urlRandomizer():
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
-calls = itertools.count()
+calls = count(start=1)
 
 def fetch_apod_data(use_random=False):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
@@ -39,6 +39,7 @@ def fetch_apod_data(use_random=False):
   try:
     if use_random:
       random_post = baseUrl + urlRandomizer()
+      print(random_post)
       response = requests.get(random_post)
     else:
       response = requests.get(baseUrl)
