@@ -167,6 +167,7 @@ def main():
       continue
     else:
       img_url, description, post_title = fetch_apod_data(use_random=True)
+      clean_filename = sanitize_filename(post_title)
       break
 
   image_response = requests.get(img_url)
@@ -174,6 +175,7 @@ def main():
   image_path = select_save_path(image, clean_filename)
   if image_path:
     set_desktop_background(image_path)
-
+  
   print(img_url)
+
 main()
