@@ -5,7 +5,7 @@ import re
 import json
 import random
 import requests
-from itertools import count
+from itertools import count # DELETE AFTER TESTING
 from datetime import datetime
 from io import BytesIO
 from tkinter import messagebox
@@ -30,16 +30,16 @@ def urlRandomizer():
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
+# DELETE AFTER TESTING
 calls = count(start=1)
 
 def fetch_apod_data(use_random=False):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  print(f'ran fetch()... {next(calls)} times')
+  print(f'ran fetch()... {next(calls)} times') # DELETE AFTER TESTING
   try:
     if use_random:
       random_post = baseUrl + urlRandomizer()
-      print(random_post)
       response = requests.get(random_post)
     else:
       response = requests.get(baseUrl)
@@ -54,8 +54,7 @@ def fetch_apod_data(use_random=False):
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
       except requests.RequestException as e:  
-        # messagebox.showerror("Error",f"{e}")
-        print("Error",f"{e}")
+        messagebox.showerror("Error",f"{e}")
         fetch_apod_data(use_random=True)
 
     post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
@@ -141,7 +140,10 @@ def select_save_path(input, title):
   if file_path:
     try:
       update_config(file_path)
-      input.save(file_path)
+      if input.mode != "RGB":
+        input.convert("RGB").save(file_path)
+      else:
+        input.save(file_path)
       return file_path
     except Exception as e:
       messagebox.showerror("Error", f"Failed to save image: {e}")
@@ -173,4 +175,5 @@ def main():
   if image_path:
     set_desktop_background(image_path)
 
+  print(img_url)
 main()
