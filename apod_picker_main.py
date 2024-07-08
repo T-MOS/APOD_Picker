@@ -150,7 +150,6 @@ def main():
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
 
   img_url, description = fetch_apod_data(use_random=False)
-  print(img_url) # display incase of hang
   clean_filename = sanitize_filename(img_url).group(1)
 
   if not img_url:
@@ -161,9 +160,7 @@ def main():
       continue
     else:
       img_url, description = fetch_apod_data(use_random=True)
-      print('RANDOM',img_url) # display incase of hang
       clean_filename = sanitize_filename(img_url).group(1)
-
       break
 
   image_response = requests.get(img_url)
