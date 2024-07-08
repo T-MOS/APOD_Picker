@@ -17,13 +17,14 @@ def urlRandomizer():
   today = datetime.now()
 #year
   y = random.randint(1995,today.year)
-  if y < 100:
-    yyStr = str(y)[-2:]
+  if y < 2095:
+    yStr = str(y)[-2:]
   else:
-    yyStr = str(y)[-3:]
+    yStr = str(y)[-3:]
 #month/day
-  if yyStr in str(today.year)[-len(yyStr):]: #if y = now().year ...
-    m = random.randint(1,today.month) #... mm value not > now().m
+  if yStr in str(today.year)[-len(yStr):]: #if y = current year ...
+    # limit m/d values to <= today's values 
+    m = random.randint(1,today.month)
     d = random.randint(1,today.day)
   else:
     m = random.randint(1,12)
@@ -31,7 +32,7 @@ def urlRandomizer():
   mmStr = str(m).zfill(2)
   ddStr = str(d).zfill(2)
 #format -> output
-  jointDate = yyStr+mmStr+ddStr
+  jointDate = yStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
