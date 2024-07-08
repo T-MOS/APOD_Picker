@@ -14,22 +14,23 @@ from bs4 import BeautifulSoup
 from PIL import Image
 
 def urlRandomizer():
-#year  
-  yearsElapsed = datetime.now().year - 1995
-  yy = random.randint(0,yearsElapsed)
-  if yy < 100:
-    yyStr = str(1995+yy)[-2:]
+  today = datetime.now()
+#year
+  y = random.randint(1995,today.year)
+  if y < 100:
+    yyStr = str(y)[-2:]
   else:
-    yyStr = str(1995+yy)[-3:]
-#month
-  if yyStr in str(datetime.now().year)[-len(yyStr):]: #if yy = now().yr ...
-    mm = random.randint(1,datetime.now().month) #... mm value not > now().m
+    yyStr = str(y)[-3:]
+#month/day
+  if yyStr in str(today.year)[-len(yyStr):]: #if y = now().year ...
+    m = random.randint(1,today.month) #... mm value not > now().m
+    d = random.randint(1,today.day)
   else:
-    mm = random.randint(1,12)
-  mmStr = str(mm).zfill(2)
-#day
-  dd = random.randint(1,31)
-  ddStr = str(dd).zfill(2)
+    m = random.randint(1,12)
+    d = random.randint(1,31)
+  mmStr = str(m).zfill(2)
+  ddStr = str(d).zfill(2)
+#format -> output
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
