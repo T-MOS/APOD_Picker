@@ -14,17 +14,21 @@ from bs4 import BeautifulSoup
 from PIL import Image
 
 def urlRandomizer():
+#year  
   yearsElapsed = datetime.now().year - 1995
   yy = random.randint(0,yearsElapsed)
-  if yy < 10:
+  if yy < 100:
     yyStr = str(1995+yy)[-2:]
-  elif 9 < yy < 100:
-    yyStr = str(1995+yy)[-2:]
-  else: # in case APOD's still kicking in 2,100
+  else:
     yyStr = str(1995+yy)[-3:]
-  mm = random.randint(1,12)
-  dd = random.randint(1,31)
+#month
+  if yyStr in str(datetime.now().year)[-len(yyStr):]: #if yy = now().yr ...
+    mm = random.randint(1,datetime.now().month) #... mm value not > now().m
+  else:
+    mm = random.randint(1,12)
   mmStr = str(mm).zfill(2)
+#day
+  dd = random.randint(1,31)
   ddStr = str(dd).zfill(2)
   jointDate = yyStr+mmStr+ddStr
   urlFormatted = f"ap{jointDate}.html"
@@ -157,6 +161,7 @@ def main():
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
 
   img_url, description, post_title = fetch_apod_data(use_random=False)
+  print(img_url)
   clean_filename = sanitize_filename(post_title)
 
   if not img_url:
@@ -167,6 +172,7 @@ def main():
       continue
     else:
       img_url, description, post_title = fetch_apod_data(use_random=True)
+      print('RANDOM',img_url)
       clean_filename = sanitize_filename(post_title)
       break
 
@@ -176,6 +182,5 @@ def main():
   if image_path:
     set_desktop_background(image_path)
   
-  print(img_url)
 
 main()
