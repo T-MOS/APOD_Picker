@@ -50,7 +50,6 @@ def fetch_apod_data(use_random=False):
     if img_tag is None: # no usable image --> repeat w/ random
       try:
         fetch_apod_data(use_random=True)
-        response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
       except requests.RequestException as e:  
