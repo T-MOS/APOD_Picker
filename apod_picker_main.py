@@ -5,7 +5,6 @@ import re
 import json
 import random
 import requests
-from itertools import count # DELETE AFTER TESTING
 from datetime import datetime
 from io import BytesIO
 from tkinter import messagebox
@@ -36,33 +35,26 @@ def urlRandomizer():
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
-# DELETE AFTER TESTING
-calls = count(start=1)
-
 def fetch_apod_data(use_random=False):
-  # Send GET request to APOD; parse HTML w/ BeautifulSoup
+# Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  print(f'ran fetch()... {next(calls)} times') # DELETE AFTER TESTING
   try:
     if use_random:
       random_post = baseUrl + urlRandomizer()
       response = requests.get(random_post)
     else:
       response = requests.get(baseUrl)
-    
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
-    
-    while img_tag is None: # no usable image --> repeat w/ random
+    if img_tag is None: # no usable image --> repeat w/ random
       try:
+        fetch_apod_data(use_random=True)
         response.raise_for_status()
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
       except requests.RequestException as e:  
         messagebox.showerror("Error",f"{e}")
-        fetch_apod_data(use_random=True)
-
     post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
     a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
@@ -91,13 +83,13 @@ def set_desktop_background(image_path):
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
-def sanitize_filename(input_string): #(post_title)
-  unsanitized = input_string.strip() # remove lead/trail whitespace
-  pattern1 = r'[\:*?"<>|]' # 1st RE for... disallowed chars
-  rinsed = re.sub(pattern1, "", unsanitized)
-  pattern2 = r'[ \/]' # 2nd RE for... fwd_slash --> underscore
-  sanitized = re.sub(pattern2, '_', rinsed)
-  return sanitized
+def sanitize_filename(url_string): #(post_title)
+  pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
+  rinsed = re.search(pattern, url_string)
+  # a = rinsed.group(1)
+  # print(rinsed[1])
+  return rinsed
+
 
 def default_dir_initializer():
   try:
@@ -163,8 +155,8 @@ def main():
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
 
   img_url, description, post_title = fetch_apod_data(use_random=False)
-  print(img_url)
-  clean_filename = sanitize_filename(post_title)
+  print(img_url) # display incase of hang
+  clean_filename = sanitize_filename(img_url).group(1)
 
   if not img_url:
     return
@@ -174,8 +166,9 @@ def main():
       continue
     else:
       img_url, description, post_title = fetch_apod_data(use_random=True)
-      print('RANDOM',img_url)
-      clean_filename = sanitize_filename(post_title)
+      print('RANDOM',img_url) # display incase of hang
+      clean_filename = sanitize_filename(img_url).group(1)
+
       break
 
   image_response = requests.get(img_url)
