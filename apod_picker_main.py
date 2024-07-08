@@ -54,11 +54,10 @@ def fetch_apod_data(use_random=False):
         img_tag = soup.find('img')
       except requests.RequestException as e:  
         messagebox.showerror("Error",f"{e}")
-    post_title = soup.find('b').text.strip() # Find image's title in: "<center> w/ child <b>"
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
     a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
     img_url = baseUrl + a['href'] # <- download/save from
-    return img_url, description, post_title 
+    return img_url, description 
   except requests.RequestException as e:
     messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
     return None, None, None
@@ -82,13 +81,10 @@ def set_desktop_background(image_path):
   except Exception as e:
     messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
 
-def sanitize_filename(url_string): #(post_title)
+def sanitize_filename(url_string):
   pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
   rinsed = re.search(pattern, url_string)
-  # a = rinsed.group(1)
-  # print(rinsed[1])
   return rinsed
-
 
 def default_dir_initializer():
   try:
@@ -153,7 +149,7 @@ def main():
   except(FileNotFoundError, json.JSONDecodeError):
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
 
-  img_url, description, post_title = fetch_apod_data(use_random=False)
+  img_url, description = fetch_apod_data(use_random=False)
   print(img_url) # display incase of hang
   clean_filename = sanitize_filename(img_url).group(1)
 
@@ -164,7 +160,7 @@ def main():
     if clean_filename not in path:# check for duplicate
       continue
     else:
-      img_url, description, post_title = fetch_apod_data(use_random=True)
+      img_url, description = fetch_apod_data(use_random=True)
       print('RANDOM',img_url) # display incase of hang
       clean_filename = sanitize_filename(img_url).group(1)
 
@@ -175,6 +171,5 @@ def main():
   image_path = select_save_path(image, clean_filename)
   if image_path:
     set_desktop_background(image_path)
-  
 
 main()
