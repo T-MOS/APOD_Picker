@@ -5,6 +5,7 @@ import re
 import json
 import random
 import requests
+import piexif
 from datetime import datetime
 from io import BytesIO
 import tkinter as tk
@@ -12,6 +13,7 @@ from tkinter import messagebox
 
 from bs4 import BeautifulSoup
 from PIL import Image
+
 
 def urlRandomizer():
   today = datetime.now()
@@ -167,13 +169,13 @@ if platform.system() == 'Darwin':
 def check_for_rotate(image):
   w,h = get_resolution()
   wim, him = image.size
-  print('wim/him:',(w/h)/(wim/him),'...him/wim:',(w/h)/(him/wim))
+  # print('wim/him:',(w/h)/(wim/him),'...him/wim:',(w/h)/(him/wim))
   if .75 <= wim/him <= 1/3:
     # print(image.info)
     return image
   if (w/h)/(wim/him) > (w/h)/(him/wim):
     image = image.rotate(90, expand=True)
-    print(image.size)
+    # print(image.size)
   return image
 
 def main():
@@ -196,10 +198,14 @@ def main():
       img_url, description = fetch_apod_data(use_random=True)
       clean_filename = sanitize_filename(img_url).group(1)
       break
-
+ 
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
   image_path = select_save_path(check_for_rotate(image), clean_filename)
+
+  imex = Image.open(image_path)
+  # exif = piexif.load(imex.info['exif'])
+  print(imex.getexif())
   if image_path:
     set_desktop_background(image_path)
 
