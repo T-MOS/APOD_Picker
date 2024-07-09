@@ -14,13 +14,13 @@ from PIL import Image
 
 def urlRandomizer():
   today = datetime.now()
-#year
+  #year
   y = random.randint(1995,today.year)
   if y < 2095:
     yStr = str(y)[-2:]
   else:
     yStr = str(y)[-3:]
-#month/day
+  #month/day
   if y == today.year: #if y = current year ...
     # limit m/d values to <= today's values 
     m = random.randint(1,today.month)
@@ -30,13 +30,13 @@ def urlRandomizer():
     d = random.randint(1,31)
   mStr = str(m).zfill(2)
   dStr = str(d).zfill(2)
-#format -> output
+  #format -> output
   jointDate = yStr+mStr+dStr
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
 def fetch_apod_data(use_random=False):
-# Send GET request to APOD; parse HTML w/ BeautifulSoup
+  # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
   try:
     if use_random:
