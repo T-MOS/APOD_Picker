@@ -142,6 +142,14 @@ def select_save_path(input, title):
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
 
+def needs_rot(image):
+  w, h = image.size
+  if .75 <= w/h <= 1/3:
+    return image
+  else:
+    image = image.rotate(90, expand=True)
+    return image
+
 def main():
   try:
     with open('config.json', 'r') as f:
