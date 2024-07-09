@@ -5,7 +5,8 @@ import re
 import json
 import random
 import requests
-import piexif
+import exiftool
+import tempfile
 from datetime import datetime
 from io import BytesIO
 import tkinter as tk
@@ -13,7 +14,6 @@ from tkinter import messagebox
 
 from bs4 import BeautifulSoup
 from PIL import Image
-
 
 def urlRandomizer():
   today = datetime.now()
@@ -203,9 +203,14 @@ def main():
   image = Image.open(BytesIO(image_response.content))
   image_path = select_save_path(check_for_rotate(image), clean_filename)
 
-  imex = Image.open(image_path)
-  # exif = piexif.load(imex.info['exif'])
-  print(imex.getexif())
+  with tempfile.TemporaryFile() as temp:
+    with Image.open(f'{image_path}') as img:
+      img.save(temp, format='JPEG')
+    temp.seek(0)
+    with exiftool.ExifTool() as et:
+      metadata = et.get_metadata(temp)
+      for d in metadata:
+        print("{:20.20} {:20.20}".format(d["SourceFile"], d["EXIF:DateTimeOriginal"]))
   if image_path:
     set_desktop_background(image_path)
 
