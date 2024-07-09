@@ -7,6 +7,7 @@ import random
 import requests
 from datetime import datetime
 from io import BytesIO
+import tkinter as tk
 from tkinter import messagebox
 
 from bs4 import BeautifulSoup
@@ -141,6 +142,27 @@ def select_save_path(input, title):
     except Exception as e:
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
+
+def get_resolution():
+  root = tk.Tk()
+  screen_width = root.winfo_screenwidth()
+  screen_height = root.winfo_screenheight()
+  root.destroy()
+  return screen_width, screen_height
+
+# Platform/OS type
+if platform.system() == 'Windows':
+  user32 = ctypes.windll.user32
+  w = user32.GetSystemMetrics(0)
+  h = user32.GetSystemMetrics(1)
+
+if platform.system() == 'Linux':
+  w, h = get_resolution()
+  get_resolution()
+
+if platform.system() == 'Darwin':
+  w,h = get_resolution()
+  get_resolution()
 
 def needs_rot(image):
   w, h = image.size
