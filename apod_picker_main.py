@@ -164,13 +164,17 @@ if platform.system() == 'Darwin':
   w,h = get_resolution()
   get_resolution()
 
-def needs_rot(image):
-  w, h = image.size
-  if .75 <= w/h <= 1/3:
+def check_for_rotate(image):
+  w,h = get_resolution()
+  wim, him = image.size
+  print('wim/him:',(w/h)/(wim/him),'...him/wim:',(w/h)/(him/wim))
+  if .75 <= wim/him <= 1/3:
+    # print(image.info)
     return image
-  else:
+  if (w/h)/(wim/him) > (w/h)/(him/wim):
     image = image.rotate(90, expand=True)
-    return image
+    print(image.size)
+  return image
 
 def main():
   try:
@@ -178,7 +182,7 @@ def main():
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError):
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
-
+  
   img_url, description = fetch_apod_data(use_random=False)
   clean_filename = sanitize_filename(img_url).group(1)
 
@@ -195,7 +199,7 @@ def main():
 
   image_response = requests.get(img_url)
   image = Image.open(BytesIO(image_response.content))
-  image_path = select_save_path(image, clean_filename)
+  image_path = select_save_path(check_for_rotate(image), clean_filename)
   if image_path:
     set_desktop_background(image_path)
 
