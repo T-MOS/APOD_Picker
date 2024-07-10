@@ -5,13 +5,13 @@ import re
 import json
 import random
 import requests
-import exiftool
+import logging
 import tempfile
+import tkinter as tk
 from datetime import datetime
 from io import BytesIO
-import tkinter as tk
 from tkinter import messagebox
-
+from exiftool import ExifToolHelper
 from bs4 import BeautifulSoup
 from PIL import Image
 
@@ -195,23 +195,33 @@ def main():
     if clean_filename not in path:# check for duplicate
       continue
     else:
+      logging.info("Duplicate filename found, fetching a new APOD data")
       img_url, description = fetch_apod_data(use_random=True)
       clean_filename = sanitize_filename(img_url).group(1)
       break
- 
+
+  logging.debug(f"Final image URL: {img_url}")
   image_response = requests.get(img_url)
+  logging.debug("Image downloaded successfully")
+  
   image = Image.open(BytesIO(image_response.content))
   image_path = select_save_path(check_for_rotate(image), clean_filename)
+  logging.debug(f"Image saved to path: {image_path}")
 
-  with tempfile.TemporaryFile() as temp:
-    with Image.open(f'{image_path}') as img:
-      img.save(temp, format='JPEG')
+  with tempfile.NamedTemporaryFile() as temp:
+    with Image.open(image_path) as img:
+      img.save(temp.name, format='JPEG')
     temp.seek(0)
-    with exiftool.ExifTool() as et:
-      metadata = et.get_metadata(temp)
-      for d in metadata:
-        print("{:20.20} {:20.20}".format(d["SourceFile"], d["EXIF:DateTimeOriginal"]))
+    try:
+      with ExifToolHelper() as et:
+        for d in et.get_metadata(temp):
+          for k,v in d.items():
+            logging.debug((f"{k} = {v}"))
+    except FileNotFoundError:
+      logging.warning("ExifTool not found. Continuing without extracting metadata.")
   if image_path:
     set_desktop_background(image_path)
+    logging.debug("Desktop background set successfully")
 
-main()
+if __name__=="__main__":
+  main()
