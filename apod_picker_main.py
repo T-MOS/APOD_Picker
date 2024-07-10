@@ -240,13 +240,10 @@ def main():
 
   try:
     with ExifToolHelper() as et:
-      for d in et.get_metadata(image_path):
-        for k,v in d.items():
-          logging.debug((f"Meta:{k} = {v}"))
-      et.set_tags([{
-        'SourceFile': image_path,
-        'Description': description
-      }])
+      et.set_tags('HaloWinMoon48_claro.jpg',tags={"ImageDescription": description})
+      # for d in et.get_metadata():
+      #   for k,v in d.items():
+      #     logging.debug((f"Meta:{k} = {v}"))
   except FileNotFoundError:
     logging.warning("ExifTool not found. Continuing without extracting metadata.")
 
