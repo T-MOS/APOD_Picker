@@ -21,22 +21,26 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 def urlRandomizer():
   today = datetime.now()
+  
   #year
   y = random.randint(1995,today.year)
   if y < 2095:
     yStr = str(y)[-2:]
   else:
     yStr = str(y)[-3:]
+  
   #month/day
-  if y == today.year: #if y = current year ...
-    # limit m/d values to <= today's values 
+  m = random.randint(1,12)
+  d = random.randint(1,31)
+  if y == 1995: # truncated 1st year
+    m = random.randint(5,12)
+  elif y == today.year: #if y = current year ...
+    # limit m/d values to be <= today.m/d 
     m = random.randint(1,today.month)
     d = random.randint(1,today.day)
-  else:
-    m = random.randint(1,12)
-    d = random.randint(1,31)
   mStr = str(m).zfill(2)
   dStr = str(d).zfill(2)
+
   #format -> output
   jointDate = yStr+mStr+dStr
   urlFormatted = f"ap{jointDate}.html"
@@ -66,8 +70,9 @@ def fetch_apod_data(use_random=False):
     img_url = baseUrl + a['href'] # <- download/save from
     return img_url, description 
   except requests.RequestException as e:
-    messagebox.showerror("Error",f"Failed to fetch APOD data: {e}")
-    return None, None, None
+    logging.error("Error",f"Failed to fetch APOD data: {e}")
+    fetch_apod_data(use_random=True)
+    # return None, None, None
 
 
 def set_desktop_background(image_path):
@@ -85,8 +90,11 @@ def set_desktop_background(image_path):
       end tell
       """
       os.system(f"/usr/bin/osascript -e '{script}'")
+    return True
   except Exception as e:
-    messagebox.showerror("Error", f"Failed to set the desktop background: {e}")
+    logging.error("Error", f"Failed to set the desktop background: {e}")
+    return False
+
 
 def sanitize_filename(url_string):
   pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
@@ -128,7 +136,7 @@ def select_save_path(input, title):
     with open('config.json', 'r') as f:
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError):
-      messagebox.showerror("Error", f"Failed to load configuration file.")
+    logging.error("Error", f"Failed to load configuration file. {e}")
   
   defaultDir = configObj.get('default_dir_path')
   if defaultDir == "": #empty str = first run or missing config
@@ -153,17 +161,16 @@ def set_no_save(image):
   fd, temp_path = tempfile.mkstemp(suffix='.jpg')
   os.close(fd)
   try:
-    with Image.open(image) as img:
-      img.save(temp_path, format="JPEG")
+    image.save(temp_path, format="JPEG")
     logging.debug(f'Temp image CREATED @ {temp_path}')
-    try:
-      set_desktop_background(img)
-    except:
-      logging.debug("Desktop background FAILED to set w/o saving.")
   finally:
-    os.remove(temp_path)
-    logging.debug(f'Temp file @ {temp_path} DELETED')
-    sys.exit("Exiting")
+    if set_desktop_background(temp_path) == True:
+      os.remove(temp_path)
+      logging.debug(f'Temp file @ {temp_path} DELETED')
+      # sys.exit("Exiting")
+    else:
+      os.remove(temp_path)
+      print('failure')
 
 def get_resolution():
   root = tk.Tk()
@@ -230,34 +237,26 @@ def main():
   logging.debug("Image downloaded successfully")
 
   image = Image.open(BytesIO(image_response.content))
-  image_path = select_save_path(check_for_rotate(image), clean_filename)
-  logging.debug(f"Image saved to path: {image_path}")
-  
+
+  configObj['keep'] = 0
   # NO SAVE
   if configObj['keep'] == 0:
     set_no_save(image)
     logging.debug('SUCCESSFUL set_no_save()')
 
-  try:
-    with ExifToolHelper() as et:
-      et.set_tags('HaloWinMoon48_claro.jpg',tags={"ImageDescription": description})
-      # for d in et.get_metadata():
-      #   for k,v in d.items():
-      #     logging.debug((f"Meta:{k} = {v}"))
-  except FileNotFoundError:
-    logging.warning("ExifTool not found. Continuing without extracting metadata.")
+  image_path = select_save_path(check_for_rotate(image), clean_filename)
+  logging.debug(f"Image saved to path: {image_path}")
 
-  # with tempfile.NamedTemporaryFile(delete=False) as temp:
-  #   with Image.open(image_path) as img:
-  #     img.save(temp, format='JPEG')
-  #   temp.seek(0)
-  #   try:
-  #     with ExifToolHelper() as et:
-  #       for d in et.get_metadata(temp):
-  #         for k,v in d.items():
-  #           logging.debug((f"{k} = {v}"))
-  #   except FileNotFoundError:
-  #     logging.warning("ExifTool not found. Continuing without extracting metadata.")
+
+  # try:
+  #   with ExifToolHelper() as et:
+  #     # et.set_tags('HaloWinMoon48_claro.jpg',tags={"ImageDescription": description})
+  #     for d in et.get_metadata():
+  #       for k,v in d.items():
+  #         logging.debug((f"Meta:{k} = {v}"))
+  # except FileNotFoundError:
+  #   logging.warning("ExifTool not found. Continuing without extracting metadata.")
+
   if image_path:
     set_desktop_background(image_path)
     logging.debug("Desktop background set successfully")
