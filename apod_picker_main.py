@@ -1,5 +1,6 @@
 import ctypes
 import os
+import sys
 import platform
 import re
 import json
@@ -14,6 +15,9 @@ from tkinter import messagebox
 from exiftool import ExifToolHelper
 from bs4 import BeautifulSoup
 from PIL import Image
+
+#logging
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def urlRandomizer():
   today = datetime.now()
@@ -145,23 +149,36 @@ def select_save_path(input, title):
       messagebox.showerror("Error", f"Failed to save image: {e}")
   return None
 
+def set_no_save(image):
+  fd, temp_path = tempfile.mkstemp(suffix='.jpg')
+  os.close(fd)
+  try:
+    with Image.open(image) as img:
+      img.save(temp_path, format="JPEG")
+    logging.debug(f'Temp image CREATED @ {temp_path}')
+    try:
+      set_desktop_background(img)
+    except:
+      logging.debug("Desktop background FAILED to set w/o saving.")
+  finally:
+    os.remove(temp_path)
+    logging.debug(f'Temp file @ {temp_path} DELETED')
+    sys.exit("Exiting")
+
 def get_resolution():
   root = tk.Tk()
   screen_width = root.winfo_screenwidth()
   screen_height = root.winfo_screenheight()
   root.destroy()
   return screen_width, screen_height
-
 # Platform/OS type
 if platform.system() == 'Windows':
   user32 = ctypes.windll.user32
   w = user32.GetSystemMetrics(0)
   h = user32.GetSystemMetrics(1)
-
 if platform.system() == 'Linux':
   w, h = get_resolution()
   get_resolution()
-
 if platform.system() == 'Darwin':
   w,h = get_resolution()
   get_resolution()
@@ -179,18 +196,26 @@ def check_for_rotate(image):
   return image
 
 def main():
-  try:
+  logging.debug("Starting main()")
+                
+  try: #open config
     with open('config.json', 'r') as f:
       configObj = json.load(f)
+    logging.debug("Loaded config.json successfully")
   except(FileNotFoundError, json.JSONDecodeError):
+    logging.warning("config.json not found or invalid, instantiating default configuration")
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
-  
+
   img_url, description = fetch_apod_data(use_random=False)
-  clean_filename = sanitize_filename(img_url).group(1)
-
+  logging.debug(f"Fetched APOD data: img_url={img_url}, description={description[:50]}")
+  
   if not img_url:
+    logging.error("No image URL found, exiting")
     return
-
+  
+  clean_filename = sanitize_filename(img_url).group(1)
+  logging.debug(f"Sanitized filename: {clean_filename}")
+  
   for path in configObj['paths']: 
     if clean_filename not in path:# check for duplicate
       continue
@@ -199,26 +224,43 @@ def main():
       img_url, description = fetch_apod_data(use_random=True)
       clean_filename = sanitize_filename(img_url).group(1)
       break
-
+ 
   logging.debug(f"Final image URL: {img_url}")
   image_response = requests.get(img_url)
   logging.debug("Image downloaded successfully")
-  
+
   image = Image.open(BytesIO(image_response.content))
   image_path = select_save_path(check_for_rotate(image), clean_filename)
   logging.debug(f"Image saved to path: {image_path}")
+  
+  # NO SAVE
+  if configObj['keep'] == 0:
+    set_no_save(image)
+    logging.debug('SUCCESSFUL set_no_save()')
 
-  with tempfile.NamedTemporaryFile() as temp:
-    with Image.open(image_path) as img:
-      img.save(temp.name, format='JPEG')
-    temp.seek(0)
-    try:
-      with ExifToolHelper() as et:
-        for d in et.get_metadata(temp):
-          for k,v in d.items():
-            logging.debug((f"{k} = {v}"))
-    except FileNotFoundError:
-      logging.warning("ExifTool not found. Continuing without extracting metadata.")
+  try:
+    with ExifToolHelper() as et:
+      for d in et.get_metadata(image_path):
+        for k,v in d.items():
+          logging.debug((f"Meta:{k} = {v}"))
+      et.set_tags([{
+        'SourceFile': image_path,
+        'Description': description
+      }])
+  except FileNotFoundError:
+    logging.warning("ExifTool not found. Continuing without extracting metadata.")
+
+  # with tempfile.NamedTemporaryFile(delete=False) as temp:
+  #   with Image.open(image_path) as img:
+  #     img.save(temp, format='JPEG')
+  #   temp.seek(0)
+  #   try:
+  #     with ExifToolHelper() as et:
+  #       for d in et.get_metadata(temp):
+  #         for k,v in d.items():
+  #           logging.debug((f"{k} = {v}"))
+  #   except FileNotFoundError:
+  #     logging.warning("ExifTool not found. Continuing without extracting metadata.")
   if image_path:
     set_desktop_background(image_path)
     logging.debug("Desktop background set successfully")
