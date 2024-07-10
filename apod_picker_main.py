@@ -11,7 +11,6 @@ import tempfile
 import tkinter as tk
 from datetime import datetime
 from io import BytesIO
-from tkinter import messagebox
 from exiftool import ExifToolHelper
 from bs4 import BeautifulSoup
 from PIL import Image
@@ -64,7 +63,7 @@ def fetch_apod_data(use_random=False):
         soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
         img_tag = soup.find('img')
       except requests.RequestException as e:  
-        messagebox.showerror("Error",f"{e}")
+        logging.error("Request error:",f"{e}")
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
     a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
     img_url = baseUrl + a['href'] # <- download/save from
@@ -74,6 +73,24 @@ def fetch_apod_data(use_random=False):
     fetch_apod_data(use_random=True)
     # return None, None, None
 
+def simple_formatter(text):
+    if text:
+      lines = text.splitlines()
+      concatenated_description = ''
+      for line in lines:
+        if len(line) >0:
+          line = line.strip() # Remove whitespace at the beginning and end of the line
+          if line.startswith('Explanation:'):
+            concatenated_description += ''
+          elif line.startswith('Tomorrow'):
+            return concatenated_description
+          else:
+            if concatenated_description ==  "":
+              concatenated_description += line
+            else:
+              concatenated_description += " " + line
+      return concatenated_description
+    return None
 
 def set_desktop_background(image_path):
   try:  
@@ -154,7 +171,7 @@ def select_save_path(input, title):
         input.save(file_path)
       return file_path
     except Exception as e:
-      messagebox.showerror("Error", f"Failed to save image: {e}")
+      logging.error("Error", f"Failed to save image: {e}")
   return None
 
 def set_no_save(image):
@@ -162,15 +179,16 @@ def set_no_save(image):
   os.close(fd)
   try:
     image.save(temp_path, format="JPEG")
-    logging.debug(f'Temp image CREATED @ {temp_path}')
+    logging.debug(f'CREATED temp file ... {temp_path[-16:]} ')
   finally:
     if set_desktop_background(temp_path) == True:
       os.remove(temp_path)
-      logging.debug(f'Temp file @ {temp_path} DELETED')
-      # sys.exit("Exiting")
+      logging.debug(f'DELETED temp file @ ... {temp_path[:-16]} ')
+      sys.exit("Exiting: SUCCESS")
     else:
       os.remove(temp_path)
-      print('failure')
+      sys.exit("no set no save: FAILURE")
+
 
 def get_resolution():
   root = tk.Tk()
@@ -208,13 +226,11 @@ def main():
   try: #open config
     with open('config.json', 'r') as f:
       configObj = json.load(f)
-    logging.debug("Loaded config.json successfully")
   except(FileNotFoundError, json.JSONDecodeError):
     logging.warning("config.json not found or invalid, instantiating default configuration")
     configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
 
   img_url, description = fetch_apod_data(use_random=False)
-  logging.debug(f"Fetched APOD data: img_url={img_url}, description={description[:50]}")
   
   if not img_url:
     logging.error("No image URL found, exiting")
@@ -231,19 +247,18 @@ def main():
       img_url, description = fetch_apod_data(use_random=True)
       clean_filename = sanitize_filename(img_url).group(1)
       break
- 
+  logging.debug(f"Fetched APOD data: img_url={img_url}, description={simple_formatter(description)[:75]}")
+
   logging.debug(f"Final image URL: {img_url}")
   image_response = requests.get(img_url)
   logging.debug("Image downloaded successfully")
 
   image = Image.open(BytesIO(image_response.content))
 
-  configObj['keep'] = 0
   # NO SAVE
   if configObj['keep'] == 0:
     set_no_save(image)
-    logging.debug('SUCCESSFUL set_no_save()')
-
+  # SAVE
   image_path = select_save_path(check_for_rotate(image), clean_filename)
   logging.debug(f"Image saved to path: {image_path}")
 
