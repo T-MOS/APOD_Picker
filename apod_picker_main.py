@@ -1,6 +1,5 @@
 import ctypes
 import os
-import sys
 import platform
 import re
 import json
@@ -67,7 +66,7 @@ def fetch_apod_data(use_random=False):
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
     a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
     img_url = baseUrl + a['href'] # <- download/save from
-    return img_url, description 
+    return img_url, simple_formatter(description) 
   except requests.RequestException as e:
     logging.error("Error",f"Failed to fetch APOD data: {e}")
     fetch_apod_data(use_random=True)
@@ -174,7 +173,7 @@ def select_save_path(input, title):
       logging.error("Error", f"Failed to save image: {e}")
   return None
 
-def set_no_save(image):
+def setter_no_save(image):
   fd, temp_path = tempfile.mkstemp(suffix='.jpg')
   os.close(fd)
   try:
@@ -184,10 +183,8 @@ def set_no_save(image):
     if set_desktop_background(temp_path) == True:
       os.remove(temp_path)
       logging.debug(f'DELETED temp file @ ... {temp_path[:-16]} ')
-      sys.exit("Exiting: SUCCESS")
     else:
       os.remove(temp_path)
-      sys.exit("no set no save: FAILURE")
 
 
 def get_resolution():
@@ -221,14 +218,12 @@ def check_for_rotate(image):
   return image
 
 def main():
-  logging.debug("Starting main()")
-                
-  try: #open config
+  try:
     with open('config.json', 'r') as f:
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError):
-    logging.warning("config.json not found or invalid, instantiating default configuration")
-    configObj = {'default_dir_path': '', 'keep': 2, 'paths': []}
+    logging.warning("config.json not found or invalid, making a default configuration")
+    configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
 
   img_url, description = fetch_apod_data(use_random=False)
   
@@ -238,26 +233,27 @@ def main():
   
   clean_filename = sanitize_filename(img_url).group(1)
   logging.debug(f"Sanitized filename: {clean_filename}")
-  
+
+# check if potential save path is already in paths
   for path in configObj['paths']: 
-    if clean_filename not in path:# check for duplicate
+    if clean_filename not in path:
       continue
     else:
       logging.info("Duplicate filename found, fetching a new APOD data")
       img_url, description = fetch_apod_data(use_random=True)
       clean_filename = sanitize_filename(img_url).group(1)
       break
-  logging.debug(f"Fetched APOD data: img_url={img_url}, description={simple_formatter(description)[:75]}")
-
-  logging.debug(f"Final image URL: {img_url}")
+  logging.debug(f"Fetched APOD data: img_url={img_url}, description={description[:75]}")
+  
   image_response = requests.get(img_url)
   logging.debug("Image downloaded successfully")
-
   image = Image.open(BytesIO(image_response.content))
+  logging.debug(f"Final image URL: {img_url}")
 
-  # NO SAVE
-  if configObj['keep'] == 0:
-    set_no_save(image)
+  # NO SAVE 
+  if configObj['keep'] == 0: 
+    setter_no_save(image)
+    return
   # SAVE
   image_path = select_save_path(check_for_rotate(image), clean_filename)
   logging.debug(f"Image saved to path: {image_path}")
