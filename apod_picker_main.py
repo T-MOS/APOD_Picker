@@ -56,20 +56,28 @@ def fetch_apod_data(use_random=False):
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
+    
     if img_tag is None: # no usable image --> repeat w/ random
-      try:
-        fetch_apod_data(use_random=True)
-        soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
-        img_tag = soup.find('img')
-      except requests.RequestException as e:  
-        logging.error("Request error:",f"{e}")
+      fetch_apod_data(True)
+
+    # if img_tag is None: # no usable image --> repeat w/ random
+    #   try:
+    #     fetch_apod_data(True)
+    #     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+        
+    #     print(soup)
+    #     img_tag = soup.find('img')
+    #     print(img_tag)
+
+    #   except requests.RequestException as e:  
+    #     logging.error("Request error:",f"{e} @ {img_url}")
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
     a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
     img_url = baseUrl + a['href'] # <- download/save from
     return img_url, simple_formatter(description) 
   except requests.RequestException as e:
     logging.error("Error",f"Failed to fetch APOD data: {e}")
-    fetch_apod_data(use_random=True)
+    fetch_apod_data(True)
     # return None, None, None
 
 def simple_formatter(text):
@@ -138,14 +146,6 @@ def update_config(saved):
   
   paths = configObj['paths']
   keep = configObj['keep']
-  dtStr = datetime.now().strftime("%x")
-  ld = configObj['last_daily']
-
-  if dtStr not in ld:
-    fetch_apod_data()
-    configObj['last_daily'] = dtStr
-  else:
-    fetch_apod_data(True)
 
   if len(paths) >= keep:
     oldest = configObj['paths'][-1]
@@ -233,9 +233,20 @@ def main():
   except(FileNotFoundError, json.JSONDecodeError):
     logging.warning("config.json not found or invalid, making a default configuration")
     configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
+  
+  # stringify a dt.object
+  dtStr = datetime.now().strftime("%x")
+  # compare against record
+  if dtStr not in configObj['last_daily']: # no match; likely first run of day...
+    img_url, description = fetch_apod_data() #  standard
+    print('Last Daily != dt.now()', img_url)
+    configObj['last_daily'] = dtStr # update configObj w/ new date str
+    with open('config.json', 'w') as out:
+      json.dump(configObj, out, indent=2)
+  else: # matched; likely a rerun...
+    img_url, description = fetch_apod_data(True) # ...randomized
 
-  img_url, description = fetch_apod_data(use_random=False)
-  logging.debug(f"Fetched APOD data: \n\nimg_url={img_url} \n\ndescription[:150]={description[:150]}\n")
+  logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
   if not img_url:
     logging.error("No image URL found, exiting")
     return
