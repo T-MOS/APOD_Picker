@@ -56,27 +56,14 @@ def fetch_apod_data(use_random=False):
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
-    
     if img_tag is None: # no usable image --> repeat w/ random
       fetch_apod_data(True)
-
-    # if img_tag is None: # no usable image --> repeat w/ random
-    #   try:
-    #     fetch_apod_data(True)
-    #     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
-        
-    #     print(soup)
-    #     img_tag = soup.find('img')
-    #     print(img_tag)
-
-    #   except requests.RequestException as e:  
-    #     logging.error("Request error:",f"{e} @ {img_url}")
     description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
     a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
     img_url = baseUrl + a['href'] # <- download/save from
     return img_url, simple_formatter(description) 
   except requests.RequestException as e:
-    logging.error("Error",f"Failed to fetch APOD data: {e}")
+    logging.error("Error",f"Failed to fetch APOD data: {e} @ {img_url}")
     fetch_apod_data(True)
     # return None, None, None
 
@@ -147,6 +134,7 @@ def update_config(saved):
   paths = configObj['paths']
   keep = configObj['keep']
 
+  #pop/swap list items 
   if len(paths) >= keep:
     oldest = configObj['paths'][-1]
     if os.path.exists(oldest):
@@ -234,7 +222,7 @@ def main():
     logging.warning("config.json not found or invalid, making a default configuration")
     configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
   
-  # stringify a dt.object
+  # stringify a date object; regionally formated
   dtStr = datetime.now().strftime("%x")
   # compare against record
   if dtStr not in configObj['last_daily']: # no match; likely first run of day...
@@ -246,29 +234,30 @@ def main():
   else: # matched; likely a rerun...
     img_url, description = fetch_apod_data(True) # ...randomized
 
-  logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
+  # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
   if not img_url:
     logging.error("No image URL found, exiting")
     return
   
-  clean_filename = sanitize_filename(img_url).group(1)
-  logging.debug(f"Sanitized filename: {clean_filename}")
-
-# check if potential save path is already in paths
-  for path in configObj['paths']: 
-    if clean_filename not in path:
-      continue
-    else:
-      logging.info("Duplicate filename found, fetching a new APOD data")
-      img_url, description = fetch_apod_data(use_random=True)
-      clean_filename = sanitize_filename(img_url).group(1)
-      logging.debug(f"Fetched RANDOM APOD: \n\nNEW img_url ... {img_url}\n")
-      logging.debug(f"Sanitized filename: {clean_filename}")
-      break
-
+  #check for any old saves
+  if len(configObj['paths']) > 0:
+    clean_filename = sanitize_filename(img_url).group(1)
+    logging.debug(f"Sanitized filename: {clean_filename}")
+    
+    for path in configObj['paths']: # check if img_url corresponds to a prexisting save
+      if clean_filename not in path:
+        continue #(save->set) OR (temp->set) as appropriate
+      else:
+        logging.info(f"Duplicate filename found, skipping tempfiles and saves, set_bg from {path}")
+        set_desktop_background(path)
+        # img_url, description = fetch_apod_data(True)
+        # clean_filename = sanitize_filename(img_url).group(1)
+        # logging.debug(f"Fetched RANDOM APOD: \n\nNEW img_url ... {img_url}\n")
+        # logging.debug(f"Sanitized filename: {clean_filename}")
+        return
   
   image_response = requests.get(img_url)
-  logging.debug("Image downloaded successfully")
+  image_response.raise_for_status()
   image = Image.open(BytesIO(image_response.content))
   logging.debug(f"Final image URL: {img_url}")
 
