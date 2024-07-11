@@ -10,7 +10,7 @@ import tempfile
 import tkinter as tk
 from datetime import datetime
 from io import BytesIO
-from exiftool import ExifToolHelper
+# from exiftool import ExifToolHelper
 from bs4 import BeautifulSoup
 from PIL import Image
 
@@ -111,7 +111,6 @@ def set_desktop_background(image_path):
     logging.error("Error", f"Failed to set the desktop background: {e}")
     return False
 
-
 def sanitize_filename(url_string):
   pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
   rinsed = re.search(pattern, url_string)
@@ -136,8 +135,18 @@ def default_dir_initializer():
 def update_config(saved):
   with open('config.json', 'r') as f:
     configObj = json.load(f)
+  
   paths = configObj['paths']
   keep = configObj['keep']
+  dtStr = datetime.now().strftime("%x")
+  ld = configObj['last_daily']
+
+  if dtStr not in ld:
+    fetch_apod_data()
+    configObj['last_daily'] = dtStr
+  else:
+    fetch_apod_data(True)
+
   if len(paths) >= keep:
     oldest = configObj['paths'][-1]
     if os.path.exists(oldest):
