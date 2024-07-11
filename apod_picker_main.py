@@ -226,7 +226,7 @@ def main():
     configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
 
   img_url, description = fetch_apod_data(use_random=False)
-  
+  logging.debug(f"Fetched APOD data: \n\nimg_url={img_url} \n\ndescription[:150]={description[:150]}\n")
   if not img_url:
     logging.error("No image URL found, exiting")
     return
@@ -242,35 +242,37 @@ def main():
       logging.info("Duplicate filename found, fetching a new APOD data")
       img_url, description = fetch_apod_data(use_random=True)
       clean_filename = sanitize_filename(img_url).group(1)
+      logging.debug(f"Fetched RANDOM APOD: \n\nNEW img_url ... {img_url}\n")
+      logging.debug(f"Sanitized filename: {clean_filename}")
       break
-  logging.debug(f"Fetched APOD data: img_url={img_url}, description={description[:75]}")
+
   
   image_response = requests.get(img_url)
   logging.debug("Image downloaded successfully")
   image = Image.open(BytesIO(image_response.content))
   logging.debug(f"Final image URL: {img_url}")
 
-  # NO SAVE 
+  # NO SAVE -> set
   if configObj['keep'] == 0: 
     setter_no_save(image)
     return
-  # SAVE
+  # SAVE -> set
   image_path = select_save_path(check_for_rotate(image), clean_filename)
   logging.debug(f"Image saved to path: {image_path}")
-
+  if image_path:
+    set_desktop_background(image_path)
+    logging.debug("Desktop background set successfully")
 
   # try:
   #   with ExifToolHelper() as et:
   #     # et.set_tags('HaloWinMoon48_claro.jpg',tags={"ImageDescription": description})
-  #     for d in et.get_metadata():
+  #     for d in et.get_metadata(image_path):
   #       for k,v in d.items():
   #         logging.debug((f"Meta:{k} = {v}"))
   # except FileNotFoundError:
   #   logging.warning("ExifTool not found. Continuing without extracting metadata.")
 
-  if image_path:
-    set_desktop_background(image_path)
-    logging.debug("Desktop background set successfully")
+
 
 if __name__=="__main__":
   main()
