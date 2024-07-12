@@ -176,9 +176,6 @@ def select_save_path(input, title):
   if file_path:
     try:
       update_config(file_path)
-      # if input.mode != "RGB":
-      #   input.convert("RGB").save(file_path)
-      # else:
       input.save(file_path)
       return file_path
     except Exception as e:
@@ -219,11 +216,9 @@ if platform.system() == 'Darwin':
 def check_for_rotate(image):
   w,h = get_resolution()
   wim, him = image.size
-  if 1/(wim/him) >= 1.5: # if > 50% taller than it is wide...
-    # return image
+  if 1/(wim/him) >= 1.4: # if > 40% taller than it is wide...
     if w > h: # check fit against monitor aspect to infer display orientation
       image = image.rotate(90, expand=True)
-    # print(image.size)
   return image
 
 def main():
@@ -234,8 +229,8 @@ def main():
     logging.warning("config.json not found or invalid, making a default configuration")
     configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
   
-  
-  dtStr = datetime.now().strftime("%x") # stringify a date object; regionally formated
+  # stringify a date object; regionally formated
+  dtStr = datetime.now().strftime("%x")
   # compare against record
   if dtStr not in configObj['last_daily']: # no match; likely first run of day...
     img_url, description = fetch_apod_data() #  standard
@@ -254,29 +249,12 @@ def main():
   image_response.raise_for_status()
   image = Image.open(BytesIO(image_response.content))
   if image.mode != "RGB":
-    print(image)
-    image.convert("RGB")
-    print(image)
+    image = image.convert("RGB")
   # logging.debug(f"Final image URL: {img_url}")
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
   dup_check = duplicate_paths(img_url, configObj) 
-
-  # if configObj['keep'] > 0:
-  #   if True in dup_check:
-  #     set_desktop_background(dup_check[1])
-  #   else: # SAVE -> set
-  #     image_path = select_save_path(check_for_rotate(image), dup_check[1])
-  #     logging.debug(f"Image saved to path: {image_path}")
-  #     if image_path:
-  #       set_desktop_background(image_path)
-  #       logging.debug("Desktop background set successfully")
-  # else:
-  #   if True in dup_check:
-  #     set_desktop_background(dup_check[1])
-  #   else:
-  #     setter_no_save(image)
-
+  print(dup_check)
   if True in dup_check:
     set_desktop_background(dup_check[1])
   else:
@@ -289,7 +267,6 @@ def main():
     else:
       setter_no_save(image)
 
-
   # try:
   #   with ExifToolHelper() as et:
   #     # et.set_tags('HaloWinMoon48_claro.jpg',tags={"ImageDescription": description})
@@ -298,8 +275,6 @@ def main():
   #         logging.debug((f"Meta:{k} = {v}"))
   # except FileNotFoundError:
   #   logging.warning("ExifTool not found. Continuing without extracting metadata.")
-
-
 
 if __name__=="__main__":
   main()
