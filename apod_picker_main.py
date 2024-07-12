@@ -139,10 +139,25 @@ def update_config(saved):
     oldest = configObj['paths'][-1]
     if os.path.exists(oldest):
       os.remove(oldest)
+
   paths.insert(0,saved)
   configObj['paths']=paths[:keep]
   with open('config.json', 'w') as out:
     json.dump(configObj, out, indent=2)
+
+def duplicate_paths(url, configurations):
+  paths = configurations['paths']
+  clean_filename = sanitize_filename(url).group(1)
+
+  if len(paths) > 0:
+    logging.debug(f"Sanitized filename: {clean_filename}")
+    for path in paths:
+      if clean_filename not in path:
+        return False, clean_filename # pass to select_save()
+      else:
+        return True, path #path of existing image
+  else:
+    return None, clean_filename# no paths
 
 def select_save_path(input, title):
   try:
@@ -174,7 +189,7 @@ def setter_no_save(image):
   fd, temp_path = tempfile.mkstemp(suffix='.jpg')
   os.close(fd)
   try:
-    image.save(temp_path, format="JPEG")
+    image.save(temp_path)
     logging.debug(f'CREATED temp file ... {temp_path[-16:]} ')
   finally:
     if set_desktop_background(temp_path) == True:
@@ -182,7 +197,6 @@ def setter_no_save(image):
       logging.debug(f'DELETED temp file @ ... {temp_path[:-16]} ')
     else:
       os.remove(temp_path)
-
 
 def get_resolution():
   root = tk.Tk()
@@ -222,12 +236,11 @@ def main():
     logging.warning("config.json not found or invalid, making a default configuration")
     configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
   
-  # stringify a date object; regionally formated
-  dtStr = datetime.now().strftime("%x")
+  
+  dtStr = datetime.now().strftime("%x") # stringify a date object; regionally formated
   # compare against record
   if dtStr not in configObj['last_daily']: # no match; likely first run of day...
     img_url, description = fetch_apod_data() #  standard
-    print('Last Daily != dt.now()', img_url)
     configObj['last_daily'] = dtStr # update configObj w/ new date str
     with open('config.json', 'w') as out:
       json.dump(configObj, out, indent=2)
@@ -239,38 +252,40 @@ def main():
     logging.error("No image URL found, exiting")
     return
   
-  #check for any old saves
-  if len(configObj['paths']) > 0:
-    clean_filename = sanitize_filename(img_url).group(1)
-    logging.debug(f"Sanitized filename: {clean_filename}")
-    
-    for path in configObj['paths']: # check if img_url corresponds to a prexisting save
-      if clean_filename not in path:
-        continue #(save->set) OR (temp->set) as appropriate
-      else:
-        logging.info(f"Duplicate filename found, skipping tempfiles and saves, set_bg from {path}")
-        set_desktop_background(path)
-        # img_url, description = fetch_apod_data(True)
-        # clean_filename = sanitize_filename(img_url).group(1)
-        # logging.debug(f"Fetched RANDOM APOD: \n\nNEW img_url ... {img_url}\n")
-        # logging.debug(f"Sanitized filename: {clean_filename}")
-        return
+  #check for any old saves  
+  # if :
+  # else:
+  #   logging.info(f"Duplicate filename found, skipping tempfiles and saves, set_bg from {path}")
+  #   set_desktop_background(path)
+  #   # img_url, description = fetch_apod_data(True)
+  #   # clean_filename = sanitize_filename(img_url).group(1)
+  #   # logging.debug(f"Fetched RANDOM APOD: \n\nNEW img_url ... {img_url}\n")
+  #   # logging.debug(f"Sanitized filename: {clean_filename}")
+  #   return
   
   image_response = requests.get(img_url)
   image_response.raise_for_status()
   image = Image.open(BytesIO(image_response.content))
   logging.debug(f"Final image URL: {img_url}")
 
-  # NO SAVE -> set
-  if configObj['keep'] == 0: 
-    setter_no_save(image)
-    return
-  # SAVE -> set
-  image_path = select_save_path(check_for_rotate(image), clean_filename)
-  logging.debug(f"Image saved to path: {image_path}")
-  if image_path:
-    set_desktop_background(image_path)
-    logging.debug("Desktop background set successfully")
+# dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
+  dup_check = duplicate_paths(img_url, configObj) 
+  if configObj['keep'] > 0:
+    if True in dup_check:
+      set_desktop_background(dup_check[1])
+    else: # SAVE -> set
+      image_path = select_save_path(check_for_rotate(image), dup_check[1])
+      logging.debug(f"Image saved to path: {image_path}")
+      if image_path:
+        set_desktop_background(image_path)
+        logging.debug("Desktop background set successfully")
+  else:
+    if True in dup_check:
+      set_desktop_background(dup_check[1])
+    else:
+      setter_no_save(image)
+
+    
 
   # try:
   #   with ExifToolHelper() as et:
