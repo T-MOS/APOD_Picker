@@ -252,21 +252,10 @@ def main():
     logging.error("No image URL found, exiting")
     return
   
-  #check for any old saves  
-  # if :
-  # else:
-  #   logging.info(f"Duplicate filename found, skipping tempfiles and saves, set_bg from {path}")
-  #   set_desktop_background(path)
-  #   # img_url, description = fetch_apod_data(True)
-  #   # clean_filename = sanitize_filename(img_url).group(1)
-  #   # logging.debug(f"Fetched RANDOM APOD: \n\nNEW img_url ... {img_url}\n")
-  #   # logging.debug(f"Sanitized filename: {clean_filename}")
-  #   return
-  
   image_response = requests.get(img_url)
   image_response.raise_for_status()
   image = Image.open(BytesIO(image_response.content))
-  logging.debug(f"Final image URL: {img_url}")
+  # logging.debug(f"Final image URL: {img_url}")
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
   dup_check = duplicate_paths(img_url, configObj) 
