@@ -63,7 +63,7 @@ def fetch_apod_data(use_random=False):
     img_url = baseUrl + a['href'] # <- download/save from
     return img_url, simple_formatter(description) 
   except requests.RequestException as e:
-    logging.error("Error",f"Failed to fetch APOD data: {e} @ {img_url}")
+    logging.error("Error",f"Failed to fetch APOD data: {e} @ {response}")
     fetch_apod_data(True)
     # return None, None, None
 
@@ -176,10 +176,10 @@ def select_save_path(input, title):
   if file_path:
     try:
       update_config(file_path)
-      if input.mode != "RGB":
-        input.convert("RGB").save(file_path)
-      else:
-        input.save(file_path)
+      # if input.mode != "RGB":
+      #   input.convert("RGB").save(file_path)
+      # else:
+      input.save(file_path)
       return file_path
     except Exception as e:
       logging.error("Error", f"Failed to save image: {e}")
@@ -220,11 +220,10 @@ def check_for_rotate(image):
   w,h = get_resolution()
   wim, him = image.size
   # print('wim/him:',(w/h)/(wim/him),'...him/wim:',(w/h)/(him/wim))
-  if .75 <= wim/him <= 1/3:
-    # print(image.info)
-    return image
-  if (w/h)/(wim/him) > (w/h)/(him/wim):
-    image = image.rotate(90, expand=True)
+  if 1/(wim/him) >= 1.5: # if > 50% taller than it is wide...
+    # return image
+    if w > h: # check fit against monitor aspect to infer display orientation
+      image = image.rotate(90, expand=True)
     # print(image.size)
   return image
 
@@ -255,26 +254,42 @@ def main():
   image_response = requests.get(img_url)
   image_response.raise_for_status()
   image = Image.open(BytesIO(image_response.content))
+  if image.mode != "RGB":
+    print(image)
+    image.convert("RGB")
+    print(image)
   # logging.debug(f"Final image URL: {img_url}")
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
   dup_check = duplicate_paths(img_url, configObj) 
-  if configObj['keep'] > 0:
-    if True in dup_check:
-      set_desktop_background(dup_check[1])
-    else: # SAVE -> set
+
+  # if configObj['keep'] > 0:
+  #   if True in dup_check:
+  #     set_desktop_background(dup_check[1])
+  #   else: # SAVE -> set
+  #     image_path = select_save_path(check_for_rotate(image), dup_check[1])
+  #     logging.debug(f"Image saved to path: {image_path}")
+  #     if image_path:
+  #       set_desktop_background(image_path)
+  #       logging.debug("Desktop background set successfully")
+  # else:
+  #   if True in dup_check:
+  #     set_desktop_background(dup_check[1])
+  #   else:
+  #     setter_no_save(image)
+
+  if True in dup_check:
+    set_desktop_background(dup_check[1])
+  else:
+    if configObj['keep'] > 0: # SAVE -> set
       image_path = select_save_path(check_for_rotate(image), dup_check[1])
       logging.debug(f"Image saved to path: {image_path}")
       if image_path:
         set_desktop_background(image_path)
         logging.debug("Desktop background set successfully")
-  else:
-    if True in dup_check:
-      set_desktop_background(dup_check[1])
     else:
       setter_no_save(image)
 
-    
 
   # try:
   #   with ExifToolHelper() as et:
