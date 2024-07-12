@@ -5,3 +5,4 @@ config.json
 *.cfg
 /Lib
 exiftool.exe
+/share

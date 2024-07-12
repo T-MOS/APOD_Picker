@@ -219,7 +219,6 @@ if platform.system() == 'Darwin':
 def check_for_rotate(image):
   w,h = get_resolution()
   wim, him = image.size
-  # print('wim/him:',(w/h)/(wim/him),'...him/wim:',(w/h)/(him/wim))
   if 1/(wim/him) >= 1.5: # if > 50% taller than it is wide...
     # return image
     if w > h: # check fit against monitor aspect to infer display orientation
