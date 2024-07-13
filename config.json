@@ -1,6 +1,15 @@
+[
 {
   "default_dir_path": "",
   "keep": 0,
   "last_daily": "",
   "paths": []
-}
+  },
+{
+  "visited":
+  {
+    "urls": [],
+    "errors": []
+    }
+  }
+]
