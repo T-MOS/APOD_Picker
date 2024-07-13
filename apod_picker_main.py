@@ -216,9 +216,15 @@ if platform.system() == 'Darwin':
 def check_for_rotate(image):
   w,h = get_resolution()
   wim, him = image.size
-  if 1/(wim/him) >= 1.4: # if > 40% taller than it is wide...
-    if w > h: # check fit against monitor aspect to infer display orientation
-      image = image.rotate(90, expand=True)
+  print('OUT OF IF:',1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
+
+  if 1/(h/image.size[1]) > .75:
+    print(1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
+    if 1/(wim/him) >= 1.4: # if > 40% taller than it is wide...
+      if w > h: # check fit against monitor aspect to infer display orientation
+        image = image.rotate(90, expand=True)
+  else:
+    main()
   return image
 
 def main():
@@ -247,19 +253,19 @@ def main():
   
   image_response = requests.get(img_url)
   image_response.raise_for_status()
-  image = Image.open(BytesIO(image_response.content))
+  image = check_for_rotate(Image.open(BytesIO(image_response.content)))
+
   if image.mode != "RGB":
     image = image.convert("RGB")
   # logging.debug(f"Final image URL: {img_url}")
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
   dup_check = duplicate_paths(img_url, configObj) 
-  print(dup_check)
   if True in dup_check:
     set_desktop_background(dup_check[1])
   else:
     if configObj['keep'] > 0: # SAVE -> set
-      image_path = select_save_path(check_for_rotate(image), dup_check[1])
+      image_path = select_save_path(image, dup_check[1])
       logging.debug(f"Image saved to path: {image_path}")
       if image_path:
         set_desktop_background(image_path)
