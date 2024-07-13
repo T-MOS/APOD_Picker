@@ -1,15 +1,20 @@
 [
-{
-  "default_dir_path": "",
-  "keep": 0,
-  "last_daily": "",
-  "paths": []
-  },
-{
-  "visited":
   {
-    "urls": [],
-    "errors": []
-    }
+    "default_dir_path": "",
+    "keep": 0,
+    "last_daily": "",
+    "paths": []
+  },
+  {
+    "logs": [
+      {
+        "number": 0,
+        "event info": {
+          "url": "",
+          "duplicate check output": [],
+          "errors": []
+        }
+      }
+    ]
   }
 ]
