@@ -63,7 +63,7 @@ def fetch_apod_data(use_random=False):
     img_url = baseUrl + a['href'] # <- download/save from
     return img_url, simple_formatter(description) 
   except requests.RequestException as e:
-    logging.error("Error",f"Failed to fetch APOD data: {e} @ {response}")
+    logging.error("Error",f"Failed to fetch APOD data: {e}")
     fetch_apod_data(True)
     # return None, None, None
 
@@ -213,19 +213,24 @@ if platform.system() == 'Darwin':
   w,h = get_resolution()
   get_resolution()
 
-def check_for_rotate(image):
+def qa(image):
   w,h = get_resolution()
   wim, him = image.size
-  print('OUT OF IF:',1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
+  
+  print(image.size, "res:",w,h)
 
-  if 1/(h/image.size[1]) > .75:
-    print(1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
-    if 1/(wim/him) >= 1.4: # if > 40% taller than it is wide...
-      if w > h: # check fit against monitor aspect to infer display orientation
-        image = image.rotate(90, expand=True)
+  if wim/him >= .75*(w/h): #ascpect w/in margin
+    if wim >= w*.8125:  #resolution w/in margin
+      return image
   else:
-    main()
-  return image
+    return None    
+
+  # if 1/(h/image.size[1]) > .75:
+  #   print(1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
+  #   if 1/(wim/him) >= 1.4: # if > 40% taller than it is wide...
+  #     if w > h: # check fit against monitor aspect to infer display orientation
+  #       image = image.rotate(90, expand=True)
+
 
 def main():
   try:
@@ -239,7 +244,7 @@ def main():
   dtStr = datetime.now().strftime("%x")
   # compare against record
   if dtStr not in configObj['last_daily']: # no match; likely first run of day...
-    img_url, description = fetch_apod_data() #  standard
+    img_url, description = fetch_apod_data() #  standard 
     configObj['last_daily'] = dtStr # update configObj w/ new date str
     with open('config.json', 'w') as out:
       json.dump(configObj, out, indent=2)
@@ -253,7 +258,7 @@ def main():
   
   image_response = requests.get(img_url)
   image_response.raise_for_status()
-  image = check_for_rotate(Image.open(BytesIO(image_response.content)))
+  image = qa(Image.open(BytesIO(image_response.content)))
 
   if image.mode != "RGB":
     image = image.convert("RGB")
