@@ -218,12 +218,34 @@ def qa(image):
   wim, him = image.size
   
   print(image.size, "res:",w,h)
-
-  if wim/him >= .75*(w/h): #ascpect w/in margin
-    if wim >= w*.8125:  #resolution w/in margin
-      return image
-  else:
-    return None    
+  
+  # disp. orientation -> usable image aspect -> resolution scale factor 
+  if w > h: # landscape
+    if wim/him >= .75*(w/h): #ascpect w/in margin
+      if w <= 2560: # up to 2k disp
+        if wim >= w*.8125:  # min. 13/16ths of w
+          return image
+      if 2560 < w < 3840: # up to 4k disp
+        if wim >= w*.6875:  # min. 11/16ths of w
+          return image
+      else: # constant cap
+        if wim > 2640:
+          return image
+    else:
+      return None
+  else: # portrait
+    if wim/him >= .75*(w/h): #ascpect w/in margin
+      if w <= 2560: # up to 2k disp
+        if wim >= w*.8125:  # min. 13/16ths of w
+          return image
+      if 2560 < w < 3840: # up to 4k disp
+        if wim >= w*.6875:  # min. 11/16ths of w
+          return image
+      else: # constant cap
+        if wim > 2640:
+          return image
+    else:
+      return None
 
   # if 1/(h/image.size[1]) > .75:
   #   print(1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
