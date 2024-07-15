@@ -196,27 +196,34 @@ def setter_no_save(image):
       os.remove(temp_path)
 
 def get_resolution():
-  root = tk.Tk()
-  screen_width = root.winfo_screenwidth()
-  screen_height = root.winfo_screenheight()
-  root.destroy()
-  return screen_width, screen_height
+  if platform.system() == 'Darwin' or 'Linux':
+    root = tk.Tk()
+    w, h = root.winfo_screenwidth(), root.winfo_screenheight()
+    root.destroy()
+    return w, h
+  elif platform.system() == 'Windows':
+    user32 = ctypes.windll.user32
+    w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    return w, h
 # Platform/OS type
-if platform.system() == 'Windows':
-  user32 = ctypes.windll.user32
-  w = user32.GetSystemMetrics(0)
-  h = user32.GetSystemMetrics(1)
-if platform.system() == 'Linux':
-  w, h = get_resolution()
-  get_resolution()
-if platform.system() == 'Darwin':
-  w,h = get_resolution()
-  get_resolution()
+# if platform.system() == 'Windows':
+#   user32 = ctypes.windll.user32
+#   w = user32.GetSystemMetrics(0)
+#   h = user32.GetSystemMetrics(1)
+# if platform.system() == 'Linux':
+#   w, h = get_resolution()
+#   get_resolution()
+# if platform.system() == 'Darwin':
+#   w,h = get_resolution()
+#   get_resolution()
 
 def qa(image):
-  w,h = get_resolution()
+  w, h = get_resolution()
   wim, him = image.size
   
+  if image.mode != "RGB":
+    image = image.convert("RGB")
+
   print(image.size, "res:",w,h)
   
   # disp. orientation -> usable image aspect -> resolution scale factor 
@@ -281,9 +288,6 @@ def main():
   image_response = requests.get(img_url)
   image_response.raise_for_status()
   image = qa(Image.open(BytesIO(image_response.content)))
-
-  if image.mode != "RGB":
-    image = image.convert("RGB")
   # logging.debug(f"Final image URL: {img_url}")
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
