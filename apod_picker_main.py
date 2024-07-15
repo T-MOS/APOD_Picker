@@ -56,16 +56,17 @@ def fetch_apod_data(use_random=False):
     response.raise_for_status()
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
-    if img_tag is None: # no usable image --> repeat w/ random
-      fetch_apod_data(True)
-    description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
-    a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
-    img_url = baseUrl + a['href'] # <- download/save from
-    return img_url, simple_formatter(description) 
+    if img_tag is None: # no usable image --> exit for retry
+      return None, None
+    else:
+      description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
+      a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
+      img_url = baseUrl + a['href'] # <- download/save from
+      return img_url, simple_formatter(description) 
   except requests.RequestException as e:
     logging.error("Error",f"Failed to fetch APOD data: {e}")
-    fetch_apod_data(True)
-    # return None, None, None
+    # fetch_apod_data(True)
+    return None, None
 
 def simple_formatter(text):
     if text:
@@ -209,6 +210,7 @@ def setter_no_save(image):
       logging.debug(f'DELETED temp file @ ... {temp_path[:-16]} ')
     else:
       os.remove(temp_path)
+      logging.debug(f'set_BG() returned FALSE \n\nDELETED temp file @ ... {temp_path[:-16]} ')
 
 def get_resolution():
   if platform.system() == 'Darwin' or 'Linux':
@@ -220,17 +222,7 @@ def get_resolution():
     user32 = ctypes.windll.user32
     w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
     return w, h
-# Platform/OS type
-# if platform.system() == 'Windows':
-#   user32 = ctypes.windll.user32
-#   w = user32.GetSystemMetrics(0)
-#   h = user32.GetSystemMetrics(1)
-# if platform.system() == 'Linux':
-#   w, h = get_resolution()
-#   get_resolution()
-# if platform.system() == 'Darwin':
-#   w,h = get_resolution()
-#   get_resolution()
+
 
 def qa(image):
   w, h = get_resolution()
@@ -272,33 +264,41 @@ def qa(image):
   #     if w > h: # check fit against monitor aspect to infer display orientation
   #       image = image.rotate(90, expand=True)
 
-
+def date_comparator(configObj):
+  # stringify a date object; regionally formated
+  dateStr = datetime.now().strftime('%x')
+  
+  # compare against record
+  if dateStr != configObj['last_daily']:
+    # img_url, description = fetch_apod_data() #  standard 
+    configObj['last_daily'] = dateStr # update configObj w/ new date str
+    dump2json(configObj)
+    return False
+  else: # matched; likely a rerun...
+    return True
+    # img_url, description = fetch_apod_data(True) # ...randomized
 
 def main():
   configObj = open_config()
-
-  # stringify a date object; regionally formated
-  dtStr = datetime.now().strftime("%x")
-  # compare against record
-  if dtStr not in configObj['last_daily']: # no match; likely first run of day...
-    img_url, description = fetch_apod_data() #  standard 
-    configObj['last_daily'] = dtStr # update configObj w/ new date str
-    dump2json(configObj)
-  else: # matched; likely a rerun...
-    img_url, description = fetch_apod_data(True) # ...randomized
+  useRandom = date_comparator(configObj)
+  img_url, description = None, None
 
   # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
-  if not img_url:
-    logging.error("No image URL found, exiting")
-    return
-  
-  image_response = requests.get(img_url)
-  image_response.raise_for_status()
-  image = qa(Image.open(BytesIO(image_response.content)))
-  # logging.debug(f"Final image URL: {img_url}")
+  while not img_url:
+    # logging.error("No image URL found")
+    img_url, description = fetch_apod_data(useRandom)
+
+  image = None
+
+  print(img_url)
+  while not image:
+    img_url, description = fetch_apod_data(useRandom)
+    image_response = requests.get(img_url)
+    image_response.raise_for_status()
+    image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
-  dup_check = duplicate_paths(img_url, configObj) 
+  dup_check = duplicate_paths(img_url, configObj)  
   if True in dup_check:
     set_desktop_background(dup_check[1])
   else:
