@@ -53,7 +53,10 @@ def fetch_apod_data(use_random=False):
       response = requests.get(random_post)
     else:
       response = requests.get(baseUrl)
-    response.raise_for_status()
+    # response.raise_for_status()
+    if response.status_code != 200:
+      print(response.status_code)
+      return None, None 
     soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
     img_tag = soup.find('img')
     if img_tag is None: # no usable image --> exit for retry
@@ -223,7 +226,6 @@ def get_resolution():
     w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
     return w, h
 
-
 def qa(image):
   w, h = get_resolution()
   wim, him = image.size
@@ -235,7 +237,7 @@ def qa(image):
   
   # disp. orientation -> usable image aspect -> resolution scale factor 
   if w > h: # landscape
-    if wim/him >= .75*(w/h): #ascpect w/in margin
+    if wim/him >= .6875*(w/h): #ascpect w/in margin
       if w <= 2560: # up to 2k disp
         if wim >= w*.8125:  # min. 13/16ths of w
           return image
@@ -245,7 +247,9 @@ def qa(image):
       else: # constant cap
         if wim > 2640:
           return image
-    else:
+    elif (wim >= w or him >= h) and wim/him > .98: # relatively high resolution but possibly sq.
+      return image
+    else:      
       return None
   else: # portrait
     if wim/him >= .75*(w/h): #ascpect w/in margin
@@ -258,6 +262,8 @@ def qa(image):
       else: # constant cap
         if wim > 2640:
           return image
+    elif (max(h,w)<= wim) and wim/him > .98: # relatively high resolution but possibly sq.
+      return image
     else:
       return None
 
@@ -281,21 +287,19 @@ def date_comparator(configObj):
 def main():
   configObj = open_config()
   useRandom = date_comparator(configObj)
+
   img_url, description = None, None
-
-  # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
-  while not img_url:
-    # logging.error("No image URL found")
-    img_url, description = fetch_apod_data(useRandom)
-
   image = None
 
-  print(img_url)
-  while not image:
+  while (not img_url or not image):
     img_url, description = fetch_apod_data(useRandom)
-    image_response = requests.get(img_url)
-    image_response.raise_for_status()
-    image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
+    if img_url:
+      print(img_url)
+      image_response = requests.get(img_url)
+      image_response.raise_for_status()
+      image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
+
+  # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
 
 # dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
   dup_check = duplicate_paths(img_url, configObj)  
