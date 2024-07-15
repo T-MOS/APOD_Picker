@@ -128,8 +128,7 @@ def default_dir_initializer():
   return default_relative_path
 
 def update_config(saved):
-  with open('config.json', 'r') as f:
-    configObj = json.load(f)
+  configObj = open_config()
   
   paths = configObj['paths']
   keep = configObj['keep']
@@ -142,9 +141,25 @@ def update_config(saved):
 
   paths.insert(0,saved)
   configObj['paths']=paths[:keep]
-  with open('config.json', 'w') as out:
-    json.dump(configObj, out, indent=2)
+  dump2json(configObj)
 
+def open_config():
+  try:
+    with open('config.json', 'r') as f:
+      configObj = json.load(f)
+  except(FileNotFoundError, json.JSONDecodeError):
+    logging.warning("config.json not found or invalid, making a default configuration")
+    
+    configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
+  return configObj
+
+def dump2json(config):
+  try:
+    with open('config.json', 'w') as out:
+      json.dump(config, out, indent=2)
+  except Exception as e:
+    logging.debug(f"{e}")
+    
 def duplicate_paths(url, configurations):
   paths = configurations['paths']
   clean_filename = sanitize_filename(url).group(1)
@@ -258,22 +273,17 @@ def qa(image):
   #       image = image.rotate(90, expand=True)
 
 
+
 def main():
-  try:
-    with open('config.json', 'r') as f:
-      configObj = json.load(f)
-  except(FileNotFoundError, json.JSONDecodeError):
-    logging.warning("config.json not found or invalid, making a default configuration")
-    configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
-  
+  configObj = open_config()
+
   # stringify a date object; regionally formated
   dtStr = datetime.now().strftime("%x")
   # compare against record
   if dtStr not in configObj['last_daily']: # no match; likely first run of day...
     img_url, description = fetch_apod_data() #  standard 
     configObj['last_daily'] = dtStr # update configObj w/ new date str
-    with open('config.json', 'w') as out:
-      json.dump(configObj, out, indent=2)
+    dump2json(configObj)
   else: # matched; likely a rerun...
     img_url, description = fetch_apod_data(True) # ...randomized
 
