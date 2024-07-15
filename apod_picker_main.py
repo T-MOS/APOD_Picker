@@ -217,15 +217,32 @@ def set_desktop_background(image_path):
 
 def get_resolution():
   if platform.system() == 'Darwin' or 'Linux':
+    
     root = tk.Tk()
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root.destroy()
-    print(w,h)
     return w, h
+  
   elif platform.system() == 'Windows':
+    c = ctypes.c_int()
+    scale = ctypes.windll.shcore.GetScaleFactorForDevice(0, ctypes.byref(c))
+    print(scale)
+    
+    factor = 1 # Initialize the scaling factor to 1
     user32 = ctypes.windll.user32
     w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
+    
+    print(scale>100, "SCALE GREATER THAN ONE HUNDRED")
+    if scale > 100: # Check if the scaling factor is greater than 100%
+      factor = 1-((scale/100) - 1) 
+      w, h = w/factor, h/factor
+      print("W = ", w," H = ",h)
+
     return w, h
+
+# def windows_Scale():
+#   scale = ctypes.windll.shcore.GetScaleFactorForDevice(0)
+#   return scale
 
 def qa(image):
   w, h = get_resolution()
