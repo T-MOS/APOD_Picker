@@ -90,26 +90,6 @@ def simple_formatter(text):
       return concatenated_description
     return None
 
-def set_desktop_background(image_path):
-  try:  
-    if platform.system() == 'Linux':
-      setterCommand = f'pcmanfm --set-wallpaper {image_path}'
-      os.system(setterCommand)
-    elif platform.system() == 'Windows':
-      SPI_SETDESKWALLPAPER = 0x0014
-      ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
-    elif platform.system() == 'Darwin':
-      script = f"""
-      tell application "Finder"
-        set desktop picture to POSIX file "{image_path}"
-      end tell
-      """
-      os.system(f"/usr/bin/osascript -e '{script}'")
-    return True
-  except Exception as e:
-    logging.error("Error", f"Failed to set the desktop background: {e}")
-    return False
-
 def sanitize_filename(url_string):
   pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
   rinsed = re.search(pattern, url_string)
@@ -163,7 +143,7 @@ def dump2json(config):
       json.dump(config, out, indent=2)
   except Exception as e:
     logging.debug(f"{e}")
-    
+
 def duplicate_paths(url, configurations):
   paths = configurations['paths']
   clean_filename = sanitize_filename(url).group(1)
@@ -215,11 +195,32 @@ def setter_no_save(image):
       os.remove(temp_path)
       logging.debug(f'set_BG() returned FALSE \n\nDELETED temp file @ ... {temp_path[:-16]} ')
 
+def set_desktop_background(image_path):
+  try:  
+    if platform.system() == 'Linux':
+      setterCommand = f'pcmanfm --set-wallpaper {image_path}'
+      os.system(setterCommand)
+    elif platform.system() == 'Windows':
+      SPI_SETDESKWALLPAPER = 0x0014
+      ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
+    elif platform.system() == 'Darwin':
+      script = f"""
+      tell application "Finder"
+        set desktop picture to POSIX file "{image_path}"
+      end tell
+      """
+      os.system(f"/usr/bin/osascript -e '{script}'")
+    return True
+  except Exception as e:
+    logging.error("Error", f"Failed to set the desktop background: {e}")
+    return False
+
 def get_resolution():
   if platform.system() == 'Darwin' or 'Linux':
     root = tk.Tk()
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root.destroy()
+    print(w,h)
     return w, h
   elif platform.system() == 'Windows':
     user32 = ctypes.windll.user32
@@ -298,10 +299,9 @@ def main():
       image_response = requests.get(img_url)
       image_response.raise_for_status()
       image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
-
   # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
 
-# dup returns: None,filename (no paths), True/path (found dup), False/filename (no match)
+  # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
   dup_check = duplicate_paths(img_url, configObj)  
   if True in dup_check:
     set_desktop_background(dup_check[1])
