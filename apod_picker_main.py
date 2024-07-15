@@ -254,9 +254,6 @@ def qa(image):
     else:
       return None
 
-  # if 1/(h/image.size[1]) > .75:
-  #   print(1/(h/image.size[1]), ">", .75, 1/(h/image.size[1]) > .75, f"img H: {image.size[1]}")
-  #   if 1/(wim/him) >= 1.4: # if > 40% taller than it is wide...
   #     if w > h: # check fit against monitor aspect to infer display orientation
   #       image = image.rotate(90, expand=True)
 
