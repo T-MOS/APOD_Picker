@@ -104,9 +104,10 @@ def default_dir_initializer():
   
   current_dir = os.path.dirname(os.path.realpath(__file__))
   default_relative_path = os.path.join(current_dir, 'saves')
-  make_saves_dir = os.makedirs(default_relative_path, exist_ok=True)
+  # makes the main saves dir while making the faves subdir 
+  make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
   configObj['default_dir_path'] = default_relative_path
-  
+
   with open("config.json", 'w') as f:
     json.dump(configObj, f, indent=2)
   return default_relative_path
@@ -114,17 +115,17 @@ def default_dir_initializer():
 def update_config(saved):
   configObj = open_config()
   
-  paths = configObj['paths']
+  saves = configObj['saves']
   keep = configObj['keep']
 
   #pop/swap list items 
-  if len(paths) >= keep:
-    oldest = configObj['paths'][-1]
+  if len(saves) >= keep:
+    oldest = configObj['saves'][-1]
     if os.path.exists(oldest):
       os.remove(oldest)
 
-  paths.insert(0,saved)
-  configObj['paths']=paths[:keep]
+  saves.insert(0,saved)
+  configObj['saves']=saves[:keep]
   dump2json(configObj)
 
 def open_config():
@@ -134,7 +135,7 @@ def open_config():
   except(FileNotFoundError, json.JSONDecodeError):
     logging.warning("config.json not found or invalid, making a default configuration")
     
-    configObj = {'default_dir_path': '', 'keep': 1, 'paths': []}
+    configObj = {'default_dir_path': '', 'keep': 1, 'saves': [], 'faves': [],}
   return configObj
 
 def dump2json(config):
@@ -145,24 +146,24 @@ def dump2json(config):
     logging.debug(f"{e}")
 
 def existing_paths(config):
-  paths = config['paths']
+  saves = config['saves']
   file_paths = []
-  saves = os.path.join(".", "saves")
-  faves = os.path.join(saves, "faves")
+  savesPath = os.path.join(".", "saves")
+  faves = os.path.join(savesPath, "faves")
   for files in os.walk(saves):
     for file in files:
       file_paths.append(file)
   for item in file_paths:
-    for path in paths:
-      if item in paths:
+    for path in saves:
+      if item in saves:
         print(f'duplicate: {item} @ {path}')
         file_paths.pop(item)
       else:
-        paths += item
+        saves.insert(0, item)
 
 
 def duplicate_paths(url, configurations):
-  paths = configurations['paths']
+  paths = configurations['saves']
   clean_filename = sanitize_filename(url).group(1)
   if len(paths) > 0:
     logging.debug(f"Sanitized filename: {clean_filename}")
