@@ -216,7 +216,7 @@ def set_desktop_background(image_path):
     return False
 
 def get_resolution():
-  if platform.system() == 'Darwin' or 'Linux':
+  if platform.system() == ('Darwin' or 'Linux'):
     
     root = tk.Tk()
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
@@ -224,20 +224,14 @@ def get_resolution():
     return w, h
   
   elif platform.system() == 'Windows':
-    c = ctypes.c_int()
-    scale = ctypes.windll.shcore.GetScaleFactorForDevice(0, ctypes.byref(c))
-    print(scale)
-    
+    scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) #, ctypes.byref(c))
     factor = 1 # Initialize the scaling factor to 1
     user32 = ctypes.windll.user32
     w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
     
-    print(scale>100, "SCALE GREATER THAN ONE HUNDRED")
-    if scale > 100: # Check if the scaling factor is greater than 100%
+    if scale > 100: # Check if layout scale is greater than 100%
       factor = (scale/100) - 1
       w, h = w+w*factor, h+h*factor
-      print("W = ", w," H = ",h)
-
     return w, h
 
 # def windows_Scale():
