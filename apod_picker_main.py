@@ -153,13 +153,6 @@ def orphan_finder():
 
   configObj['faves'] = faves
   dump2json(configObj)
-  # for path in file_paths:
-  #   for save in saves:
-  #     if path in saves:
-  #       print(f'duplicate: {path} @ {save}')
-  #       file_paths.pop(file_paths.index(path))
-  #     else:
-  #       faves.append(path)
 
 def duplicate_paths(url, configurations):
   paths = configurations['saves']
