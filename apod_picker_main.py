@@ -234,8 +234,8 @@ def get_resolution():
     
     print(scale>100, "SCALE GREATER THAN ONE HUNDRED")
     if scale > 100: # Check if the scaling factor is greater than 100%
-      factor = 1-((scale/100) - 1) 
-      w, h = w/factor, h/factor
+      factor = (scale/100) - 1
+      w, h = w+w*factor, h+h*factor
       print("W = ", w," H = ",h)
 
     return w, h
