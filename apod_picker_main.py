@@ -96,23 +96,18 @@ def sanitize_filename(url_string):
   return rinsed
 
 def default_dir_initializer():
-  try:
-    with open('config.json', 'r') as f:
-      configObj = json.load(f)
-  except (FileNotFoundError, json.JSONDecodeError):
-    configObj = {"default_dir_path": "","keep": 2,"paths": []}  
+  configObj = open_config()  
   
   current_dir = os.path.dirname(os.path.realpath(__file__))
   default_relative_path = os.path.join(current_dir, 'saves')
   # makes the main saves dir while making the faves subdir 
   make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
-  configObj['default_dir_path'] = default_relative_path
+  configObj['base path'] = default_relative_path
 
-  with open("config.json", 'w') as f:
-    json.dump(configObj, f, indent=2)
+  dump2json(configObj)
   return default_relative_path
 
-def update_config(saved):
+def update_saves(saved):
   configObj = open_config()
   
   saves = configObj['saves']
@@ -135,7 +130,7 @@ def open_config():
   except(FileNotFoundError, json.JSONDecodeError):
     logging.warning("config.json not found or invalid, making a default configuration")
     
-    configObj = {'default_dir_path': '', 'keep': 1, 'saves': [], 'faves': [],}
+    configObj = {'base path': '', 'keep': 1, 'saves': [], 'faves': [],}
   return configObj
 
 def dump2json(config):
@@ -145,22 +140,26 @@ def dump2json(config):
   except Exception as e:
     logging.debug(f"{e}")
 
-def existing_paths(config):
-  saves = config['saves']
-  file_paths = []
-  savesPath = os.path.join(".", "saves")
-  faves = os.path.join(savesPath, "faves")
-  for files in os.walk(saves):
-    for file in files:
-      file_paths.append(file)
-  for item in file_paths:
-    for path in saves:
-      if item in saves:
-        print(f'duplicate: {item} @ {path}')
-        file_paths.pop(item)
-      else:
-        saves.insert(0, item)
+def orphan_finder():
+  configObj = open_config() 
+  faves = configObj['faves']
+  basePath = configObj['base path']
+  favesPath = os.path.join(basePath, "faves")
 
+  for root, subdirs, files in os.walk(favesPath):
+    for file in files:
+      if file not in faves:
+        faves.append(file)
+
+  configObj['faves'] = faves
+  dump2json(configObj)
+  # for path in file_paths:
+  #   for save in saves:
+  #     if path in saves:
+  #       print(f'duplicate: {path} @ {save}')
+  #       file_paths.pop(file_paths.index(path))
+  #     else:
+  #       faves.append(path)
 
 def duplicate_paths(url, configurations):
   paths = configurations['saves']
@@ -182,7 +181,7 @@ def select_save_path(input, title):
   except(FileNotFoundError, json.JSONDecodeError):
     logging.error("Error", f"Failed to load configuration file. {e}")
   
-  defaultDir = configObj.get('default_dir_path')
+  defaultDir = configObj.get('base path')
   if defaultDir == "": #empty str = first run or missing config
     defaultDir = default_dir_initializer()
   else:
@@ -191,7 +190,7 @@ def select_save_path(input, title):
   file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
     try:
-      update_config(file_path)
+      update_saves(file_path)
       input.save(file_path)
       return file_path
     except Exception as e:
@@ -300,9 +299,9 @@ def date_comparator(configObj):
   dateStr = datetime.now().strftime('%x')
   
   # compare against record
-  if dateStr != configObj['last_daily']:
+  if dateStr != configObj['last daily']:
     # img_url, description = fetch_apod_data() #  standard 
-    configObj['last_daily'] = dateStr # update configObj w/ new date str
+    configObj['last daily'] = dateStr # update configObj w/ new date str
     dump2json(configObj)
     return False
   else: # matched; likely a rerun...

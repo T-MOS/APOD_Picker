@@ -1,8 +1,9 @@
 {
-  "default_dir_path": "",
-  "keep": 0,
-  "last_daily": "",
-  "paths": [],
+  "base path": "",
+  "keep": 1,
+  "last daily": "",
+  "saves": [],
+  "faves": [],
   "logs": [
     {
       "number": 0,
