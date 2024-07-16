@@ -144,10 +144,26 @@ def dump2json(config):
   except Exception as e:
     logging.debug(f"{e}")
 
+def existing_paths(config):
+  paths = config['paths']
+  file_paths = []
+  saves = os.path.join(".", "saves")
+  faves = os.path.join(saves, "faves")
+  for files in os.walk(saves):
+    for file in files:
+      file_paths.append(file)
+  for item in file_paths:
+    for path in paths:
+      if item in paths:
+        print(f'duplicate: {item} @ {path}')
+        file_paths.pop(item)
+      else:
+        paths += item
+
+
 def duplicate_paths(url, configurations):
   paths = configurations['paths']
   clean_filename = sanitize_filename(url).group(1)
-
   if len(paths) > 0:
     logging.debug(f"Sanitized filename: {clean_filename}")
     for path in paths:
@@ -233,10 +249,6 @@ def get_resolution():
       factor = (scale/100) - 1
       w, h = w+w*factor, h+h*factor
     return w, h
-
-# def windows_Scale():
-#   scale = ctypes.windll.shcore.GetScaleFactorForDevice(0)
-#   return scale
 
 def qa(image):
   w, h = get_resolution()
