@@ -112,16 +112,22 @@ def update_saves(saved):
   
   saves = configObj['saves']
   keep = configObj['keep']
-
+  saves.insert(0,saved)
+  
   #pop/swap list items 
   if len(saves) >= keep:
     while len(saves) > keep:
       oldest = configObj['saves'][-1]
+      print()
       if os.path.exists(oldest):
         os.remove(oldest)
+        saves.pop(-1)
+      else:
+        saves.pop(-1)
 
-  saves.insert(0,saved)
-  configObj['saves']=saves[:keep]
+  
+
+  configObj['saves'] = saves
   dump2json(configObj)
 
 def open_config():
