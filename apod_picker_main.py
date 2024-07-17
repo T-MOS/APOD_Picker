@@ -115,9 +115,10 @@ def update_saves(saved):
 
   #pop/swap list items 
   if len(saves) >= keep:
-    oldest = configObj['saves'][-1]
-    if os.path.exists(oldest):
-      os.remove(oldest)
+    while len(saves) > keep:
+      oldest = configObj['saves'][-1]
+      if os.path.exists(oldest):
+        os.remove(oldest)
 
   saves.insert(0,saved)
   configObj['saves']=saves[:keep]
@@ -141,7 +142,8 @@ def dump2json(config):
     logging.debug(f"{e}")
 
 def orphan_finder():
-  configObj = open_config() 
+  configObj = open_config()
+
   faves = configObj['faves']
   basePath = configObj['base path']
   favesPath = os.path.join(basePath, "faves")
@@ -153,16 +155,18 @@ def orphan_finder():
 
   configObj['faves'] = faves
   dump2json(configObj)
+  return configObj
 
-def duplicate_paths(url, configurations):
-  paths = configurations['saves']
+def duplicate_paths(url, configs):
+  paths = configs['saves']
   clean_filename = sanitize_filename(url).group(1)
   if len(paths) > 0:
-    logging.debug(f"Sanitized filename: {clean_filename}")
     for path in paths:
       if clean_filename not in path:
+        logging.debug(f"Sanitized filename: {clean_filename}")
         return False, clean_filename # pass to select_save()
       else:
+        logging.debug(f"dup found @ {path}")
         return True, path #path of existing image
   else:
     return None, clean_filename# no paths
@@ -302,7 +306,8 @@ def date_comparator(configObj):
     # img_url, description = fetch_apod_data(True) # ...randomized
 
 def main():
-  configObj = open_config()
+  #  o_f() <- returns a configObj after finding any unaccounted for (orphaned/added) images 
+  configObj = orphan_finder() 
   useRandom = date_comparator(configObj)
 
   img_url, description = None, None
