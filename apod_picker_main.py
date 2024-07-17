@@ -149,30 +149,45 @@ def dump2json(config):
 def orphan_finder():
   configObj = open_config()
 
-  faves = configObj['faves']
+  faves = []
+  saves = configObj['saves']
+  # files = saves + faves
+
   basePath = configObj['base path']
   favesPath = os.path.join(basePath, "faves")
 
-  for root, subdirs, files in os.walk(favesPath):
+  for root, subdirs, files, in os.walk(basePath): # traverse saves dir
     for file in files:
-      if file not in faves:
-        faves.append(file)
+      if 'faves' not in root: # image in \saves
+        if file not in saves: # see if image is on ['saves'] list, if not...
+          orphan = os.path.join(root,file)
+          foster = os.path.join(favesPath,file)
+          os.rename(orphan, foster) # move to faves
+      else: # in \faves subdir 
+        if ('faves' in root) and (file not in faves):
+          faves.append(file)
+  # for root, subdirs, files in os.walk(favesPath):
+  #   for file in files:
+  #     if file not in faves:
+  #       faves.append(file)
 
   configObj['faves'] = faves
   dump2json(configObj)
   return configObj
 
 def duplicate_paths(url, configs):
-  paths = configs['saves']
+  files = configs['saves'] + configs['faves']
+
   clean_filename = sanitize_filename(url).group(1)
-  if len(paths) > 0:
-    for path in paths:
-      if clean_filename not in path:
+
+  if len(files) > 0:
+    for file in files:
+      if clean_filename not in file:
         logging.debug(f"Sanitized filename: {clean_filename}")
         return False, clean_filename # pass to select_save()
       else:
-        logging.debug(f"dup found @ {path}")
-        return True, path #path of existing image
+        logging.debug(f"dup found @ {file}")
+        return True, file #path of existing image
   else:
     return None, clean_filename# no paths
 
@@ -192,7 +207,7 @@ def select_save_path(input, title):
   file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
     try:
-      update_saves(file_path)
+      update_saves(title)
       input.save(file_path)
       return file_path
     except Exception as e:
