@@ -8,6 +8,7 @@ import requests
 import logging
 import tempfile
 import tkinter as tk
+from collections import Counter
 from datetime import datetime
 from io import BytesIO
 # from exiftool import ExifToolHelper
@@ -146,34 +147,96 @@ def dump2json(config):
   except Exception as e:
     logging.debug(f"{e}")
 
-def orphan_finder():
+
+
+
+def faves_updater():
   configObj = open_config()
-
-  faves = []
-  saves = configObj['saves']
-  # files = saves + faves
-
   basePath = configObj['base path']
-  favesPath = os.path.join(basePath, "faves")
+  s = configObj['saves']
+  f = configObj['faves']
+  setS = set(s)
+  setF = set(f)
+  set_all = set()
+  set_of_saves = set()
+  set_of_faves = set()
 
-  for root, subdirs, files, in os.walk(basePath): # traverse saves dir
-    for file in files:
-      if 'faves' not in root: # image in \saves
-        if file not in saves: # see if image is on ['saves'] list, if not...
-          orphan = os.path.join(root,file)
-          foster = os.path.join(favesPath,file)
-          os.rename(orphan, foster) # move to faves
-      else: # in \faves subdir 
-        if ('faves' in root) and (file not in faves):
-          faves.append(file)
-  # for root, subdirs, files in os.walk(favesPath):
-  #   for file in files:
-  #     if file not in faves:
-  #       faves.append(file)
+  for ro,su,fi in os.walk(basePath):
+    for file in fi:
+      set_all.add(file)
+      if 'faves' not in ro: # image in \saves
+        set_of_saves.add(file)
+      else:
+        set_of_faves.add(file)
+  
+  uncounted_in_saves = list(set_of_saves.difference(setS))
+  f = list(set_of_faves)
+  f.extend(uncounted_in_saves)
+  
+  for img in uncounted_in_saves:
+    orphan = os.path.join(basePath,img)
+    favesPath = os.path.join(basePath,'faves')
+    foster = os.path.join(favesPath,img)
+    os.rename(orphan, foster)    
 
-  configObj['faves'] = faves
+  configObj['faves'] = f
   dump2json(configObj)
   return configObj
+
+  # cF = Counter(setF)
+  # c_faves = Counter(set_of_faves)
+  # for fave in c_faves:
+  #   for F in cF:
+  #     F in fave
+
+  # uncounted_in_faves = list(set_of_faves.difference(setF))
+  # f.extend(uncounted_in_faves)
+  
+
+
+  # print("Full file set: ", set_all, "\n Saved set(\\saves): ", set_saved, '\n')
+
+
+  # uniques = []
+  # if same is False:
+  #   set
+  #   uniques.add()
+  #   return
+
+
+
+# def orphan_finder():
+
+#   configObj = open_config()
+
+#   faves = []
+#   saves = configObj['saves']
+#   # files = saves + faves
+
+#   basePath = configObj['base path']
+#   favesPath = os.path.join(basePath, "faves")
+
+#   for root, subdirs, files, in os.walk(basePath): # traverse saves dir
+#     for file in files:
+#       if 'faves' not in root: # image in \saves
+#         if file not in saves: # see if image is on ['saves'] list, if not...
+#           orphan = os.path.join(root,file)
+#           foster = os.path.join(favesPath,file)
+#           os.rename(orphan, foster) # move to faves
+#           faves.append(file)
+#       else: # in \faves subdir 
+#         if ('faves' in root) and (file not in faves):
+#           faves.append(file)
+#   # for root, subdirs, files in os.walk(favesPath):
+#   #   for file in files:
+#   #     if file not in faves:
+#   #       faves.append(file)
+
+#   configObj['faves'] = faves
+#   dump2json(configObj)
+#   return configObj
+
+
 
 def duplicate_paths(url, configs):
   files = configs['saves'] + configs['faves']
@@ -327,7 +390,7 @@ def date_comparator(configObj):
 
 def main():
   #  o_f() <- returns a configObj after finding any unaccounted for (orphaned/added) images 
-  configObj = orphan_finder() 
+  configObj = faves_updater() 
   useRandom = date_comparator(configObj)
 
   img_url, description = None, None
