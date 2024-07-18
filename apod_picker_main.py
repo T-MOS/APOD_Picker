@@ -113,16 +113,15 @@ def update_saves(saved):
   
   saves = configObj['saves']
   keep = configObj['keep']
-  
   saves.insert(0,saved)
 
   #pop/swap list items 
   if len(saves) >= keep:
     while len(saves) > keep:
       oldest = configObj['saves'][-1]
-      print()
-      if os.path.exists(oldest):
-        os.remove(oldest)
+      oldest_path = os.path.join(configObj['base path'],oldest)
+      if os.path.exists(oldest_path):
+        os.remove(oldest_path)
         saves.pop(-1)
       else:
         saves.pop(-1)
