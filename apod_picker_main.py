@@ -114,7 +114,6 @@ def update_saves(saved):
   saves = configObj['saves']
   keep = configObj['keep']
   
-  saves.insert(0,saved)
 
   #pop/swap list items 
   # if len(saves) >= keep:
@@ -126,6 +125,7 @@ def update_saves(saved):
       saves.pop(-1)
     else:
       saves.pop(-1)
+  saves.insert(0,saved)
 
   configObj['saves'] = saves
   dump2json(configObj)
@@ -175,8 +175,7 @@ def faves_updater():
   
   for img in uncounted_in_saves:
     orphan = os.path.join(basePath,img)
-    favesPath = os.path.join(basePath,'faves')
-    foster = os.path.join(favesPath,img)
+    foster = os.path.join(os.path.join(basePath,'faves'),img)
     os.rename(orphan, foster)    
 
   configObj['faves'] = f
@@ -270,7 +269,7 @@ def select_save_path(input, title):
   file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
     try:
-      update_saves(title)
+      update_saves(title+'.jpg')
       input.save(file_path)
       return file_path
     except Exception as e:
