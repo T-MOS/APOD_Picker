@@ -148,7 +148,6 @@ def dump2json(config):
 
 
 
-
 def faves_updater():
   configObj = open_config()
   basePath = configObj['base path']
@@ -169,7 +168,10 @@ def faves_updater():
         set_of_faves.add(file)
   
   uncounted_in_saves = list(set_of_saves.difference(setS))
+  uncounted_in_faves = list(set_of_faves.difference(setF))
+
   f = list(set_of_faves)
+  f.extend(uncounted_in_faves)
   f.extend(uncounted_in_saves)
   
   for img in uncounted_in_saves:
@@ -187,53 +189,8 @@ def faves_updater():
   #   for F in cF:
   #     F in fave
 
-  # uncounted_in_faves = list(set_of_faves.difference(setF))
-  # f.extend(uncounted_in_faves)
+
   
-
-
-  # print("Full file set: ", set_all, "\n Saved set(\\saves): ", set_saved, '\n')
-
-
-  # uniques = []
-  # if same is False:
-  #   set
-  #   uniques.add()
-  #   return
-
-
-
-# def orphan_finder():
-
-#   configObj = open_config()
-
-#   faves = []
-#   saves = configObj['saves']
-#   # files = saves + faves
-
-#   basePath = configObj['base path']
-#   favesPath = os.path.join(basePath, "faves")
-
-#   for root, subdirs, files, in os.walk(basePath): # traverse saves dir
-#     for file in files:
-#       if 'faves' not in root: # image in \saves
-#         if file not in saves: # see if image is on ['saves'] list, if not...
-#           orphan = os.path.join(root,file)
-#           foster = os.path.join(favesPath,file)
-#           os.rename(orphan, foster) # move to faves
-#           faves.append(file)
-#       else: # in \faves subdir 
-#         if ('faves' in root) and (file not in faves):
-#           faves.append(file)
-#   # for root, subdirs, files in os.walk(favesPath):
-#   #   for file in files:
-#   #     if file not in faves:
-#   #       faves.append(file)
-
-#   configObj['faves'] = faves
-#   dump2json(configObj)
-#   return configObj
-
 
 
 def duplicate_paths(url, configs):
