@@ -114,18 +114,18 @@ def update_saves(saved):
   saves = configObj['saves']
   keep = configObj['keep']
   
+  saves.insert(0,saved)
 
   #pop/swap list items 
-  # if len(saves) >= keep:
-  while len(saves) > keep:
-    oldest = configObj['saves'][-1]
-    print()
-    if os.path.exists(oldest):
-      os.remove(oldest)
-      saves.pop(-1)
-    else:
-      saves.pop(-1)
-  saves.insert(0,saved)
+  if len(saves) >= keep:
+    while len(saves) > keep:
+      oldest = configObj['saves'][-1]
+      print()
+      if os.path.exists(oldest):
+        os.remove(oldest)
+        saves.pop(-1)
+      else:
+        saves.pop(-1)
 
   configObj['saves'] = saves
   dump2json(configObj)
@@ -269,7 +269,7 @@ def select_save_path(input, title):
   file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
     try:
-      update_saves(title+'.jpg')
+      update_saves(title + '.jpg')
       input.save(file_path)
       return file_path
     except Exception as e:
