@@ -163,9 +163,12 @@ def faves_updater():
       if 'faves' not in root: # image in \saves
         set_of_saves.add(file)
       else: # "faves" in root
-        faves_index = root.index('faves') + len('faves') #find end point of faves string
-        rel_path = root[faves_index:].strip(os.sep) # strip os sep's from everything after
-        relative_file = os.path.join(rel_path,file) # rejoin w/ file ++ sep's
+        # find end point of faves string
+        faves_index = root.index('faves') + len('faves') 
+        # strip os sep's from everything after
+        rel_path = root[faves_index:].strip(os.sep)
+        # rejoin w/ file ++ sep's
+        relative_file = os.path.join(rel_path,file) 
         set_of_faves.add(relative_file)
 
   uncounted_in_saves = list(set_of_saves.difference(setS))
