@@ -159,6 +159,8 @@ def faves_updater():
   set_of_saves = set()
   set_of_faves = set()
 
+
+
   for ro,su,fi in os.walk(basePath):
     for file in fi:
       set_all.add(file)
@@ -174,11 +176,14 @@ def faves_updater():
   f.extend(uncounted_in_faves)
   f.extend(uncounted_in_saves)
   
+  faves_dir = os.path.join(basePath,'faves')
+  os.makedirs(faves_dir, exist_ok=True) # ensure faves exists before rename() moves 
+
   for img in uncounted_in_saves:
     orphan = os.path.join(basePath,img)
-    foster = os.path.join(os.path.join(basePath,'faves'),img)
-    os.rename(orphan, foster)    
-
+    foster = os.path.join(faves_dir,img)
+    os.rename(orphan, foster)
+  
   configObj['faves'] = f
   dump2json(configObj)
   return configObj
