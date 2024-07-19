@@ -155,27 +155,26 @@ def faves_updater():
   f = configObj['faves']
   setS = set(s)
   setF = set(f)
-  set_all = set()
   set_of_saves = set()
   set_of_faves = set()
 
-
-
-  for ro,su,fi in os.walk(basePath):
-    for file in fi:
-      set_all.add(file)
-      if 'faves' not in ro: # image in \saves
+  for root,sub,files in os.walk(basePath):
+    for file in files:
+      if 'faves' not in root: # image in \saves
         set_of_saves.add(file)
-      else:
-        set_of_faves.add(file)
-  
+      else: # "faves" in root
+        faves_index = root.index('faves') + len('faves') #find end point of faves string
+        rel_path = root[faves_index:].strip(os.sep) # strip os sep's from everything after
+        relative_file = os.path.join(rel_path,file) # rejoin w/ file ++ sep's
+        set_of_faves.add(relative_file)
+
   uncounted_in_saves = list(set_of_saves.difference(setS))
   uncounted_in_faves = list(set_of_faves.difference(setF))
 
   f = list(set_of_faves)
   f.extend(uncounted_in_faves)
   f.extend(uncounted_in_saves)
-  
+
   faves_dir = os.path.join(basePath,'faves')
   os.makedirs(faves_dir, exist_ok=True) # ensure faves exists before rename() moves 
 
