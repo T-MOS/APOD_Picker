@@ -8,14 +8,13 @@ import requests
 import logging
 import tempfile
 import tkinter as tk
-from collections import Counter
+# from collections import Counter
 from datetime import datetime
 from io import BytesIO
 # from exiftool import ExifToolHelper
 from bs4 import BeautifulSoup
 from PIL import Image
 
-#logging
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def urlRandomizer():
@@ -190,15 +189,6 @@ def faves_updater():
   configObj['faves'] = f
   dump2json(configObj)
   return configObj
-
-  # cF = Counter(setF)
-  # c_faves = Counter(set_of_faves)
-  # for fave in c_faves:
-  #   for F in cF:
-  #     F in fave
-
-
-  
 
 
 def duplicate_paths(url, configs):
