@@ -19,15 +19,18 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 def image_pool_selector(config):
   faves = config['faves']
-  pool
+  pool = ""
   if 0 < len(faves) < 10: # (essentially) no faves
-    a = random.randint(1,5)
-    if a == 1: #20% chance to use image(s) from small faves pool
+    a = random.randint(1,5)# pick pool w/ 4:1 weights floor
+    if a == 1: #20% chance to use image(s) from the (small) faves pool
       pool = "faves"
+      
     else: # 80% chance to fetch new
       pool = "fetch"
     return pool
-
+  else:
+    pool = "fetch"
+    return pool
 
 def urlRandomizer():
   today = datetime.now()
@@ -157,8 +160,6 @@ def dump2json(config):
   except Exception as e:
     logging.debug(f"{e}")
 
-
-
 def faves_updater():
   configObj = open_config()
   basePath = configObj['base path']
@@ -201,7 +202,6 @@ def faves_updater():
   configObj['faves'] = f
   dump2json(configObj)
   return configObj
-
 
 def duplicate_paths(url, configs):
   files = configs['saves'] + configs['faves']
@@ -354,37 +354,44 @@ def date_comparator(configObj):
     # img_url, description = fetch_apod_data(True) # ...randomized
 
 def main():
-  #  o_f() <- returns a configObj after finding any unaccounted for (orphaned/added) images 
   configObj = faves_updater()
 
-  image_pool_selector()
-  useRandom = date_comparator(configObj)
+  pool = image_pool_selector(configObj)
+  if pool == "fetch":
+    useRandom = date_comparator(configObj)
 
-  img_url, description = None, None
-  image = None
+    img_url, description = None, None
+    image = None
 
-  while (not img_url or not image):
-    img_url, description = fetch_apod_data(useRandom)
-    if img_url:
-      print(img_url)
-      image_response = requests.get(img_url)
-      image_response.raise_for_status()
-      image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
-  # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
+    while (not img_url or not image):
+      img_url, description = fetch_apod_data(useRandom)
+      if img_url:
+        print(img_url)
+        image_response = requests.get(img_url)
+        image_response.raise_for_status()
+        image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
+    # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
 
-  # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
-  dup_check = duplicate_paths(img_url, configObj)  
-  if True in dup_check:
-    set_desktop_background(dup_check[1])
-  else:
-    if configObj['keep'] > 0: # SAVE -> set
-      image_path = select_save_path(image, dup_check[1])
-      logging.debug(f"Image saved to path: {image_path}")
-      if image_path:
-        set_desktop_background(image_path)
-        logging.debug("Desktop background set successfully")
+    # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
+    dup_check = duplicate_paths(img_url, configObj)  
+    if True in dup_check:
+      set_desktop_background(dup_check[1])
     else:
-      setter_no_save(image)
+      if configObj['keep'] > 0: # SAVE -> set
+        image_path = select_save_path(image, dup_check[1])
+        logging.debug(f"Image saved to path: {image_path}")
+        if image_path:
+          set_desktop_background(image_path)
+          logging.debug("New Desktop background FETCHED/set")
+      else:
+        setter_no_save(image)
+  else: # from "faves"
+    shuffaves = configObj['faves']
+    random.shuffle(shuffaves)
+    path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
+    set_desktop_background(path)
+    logging.debug(f"OLD Desktop background FAVES -> set {path}")
+
 
   # try:
   #   with ExifToolHelper() as et:
