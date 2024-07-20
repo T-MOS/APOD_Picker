@@ -160,16 +160,17 @@ def faves_updater():
 
   for root,sub,files in os.walk(basePath):
     for file in files:
-      if 'faves' not in root: # image in \saves
-        set_of_saves.add(file)
-      else: # "faves" in root
-        # find end point of faves string
-        faves_index = root.index('faves') + len('faves') 
-        # strip os sep's from everything after
-        rel_path = root[faves_index:].strip(os.sep)
-        # rejoin w/ file ++ sep's
-        relative_file = os.path.join(rel_path,file) 
-        set_of_faves.add(relative_file)
+      if (".jpg" or ".png" or ".bmp") in file:
+        if 'faves' not in root: # image in \saves
+          set_of_saves.add(file)
+        else: # "faves" in root
+          # find end point of faves string
+          faves_index = root.index('faves') + len('faves') 
+          # strip os sep's from everything after
+          rel_path = root[faves_index:].strip(os.sep)
+          # rejoin w/ file ++ sep's
+          relative_file = os.path.join(rel_path,file) 
+          set_of_faves.add(relative_file)
 
   uncounted_in_saves = list(set_of_saves.difference(setS))
   uncounted_in_faves = list(set_of_faves.difference(setF))
