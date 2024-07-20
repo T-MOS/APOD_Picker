@@ -17,6 +17,18 @@ from PIL import Image
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def image_pool_selector(config):
+  faves = config['faves']
+  pool
+  if 0 < len(faves) < 10: # (essentially) no faves
+    a = random.randint(1,5)
+    if a == 1: #20% chance to use image(s) from small faves pool
+      pool = "faves"
+    else: # 80% chance to fetch new
+      pool = "fetch"
+    return pool
+
+
 def urlRandomizer():
   today = datetime.now()
   
@@ -343,7 +355,9 @@ def date_comparator(configObj):
 
 def main():
   #  o_f() <- returns a configObj after finding any unaccounted for (orphaned/added) images 
-  configObj = faves_updater() 
+  configObj = faves_updater()
+
+  image_pool_selector()
   useRandom = date_comparator(configObj)
 
   img_url, description = None, None
