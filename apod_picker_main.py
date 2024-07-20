@@ -19,19 +19,23 @@ logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %
 
 def image_pool_selector(config):
   faves = config['faves']
-  pool = ""
+  pool = "fetch"
   if 0 < len(faves) < 10: # (essentially) no faves
-    a = random.randint(1,5)# pick pool w/ 4:1 weights floor
-    if a == 1: #20% chance to use image(s) from the (small) faves pool
+    small = random.randint(1,100) # set a minimum likelihood 
+    if small <= 25: #25% chance to use image(s) from the  faves pool
       pool = "faves"
-      
-    else: # 80% chance to fetch new
-      pool = "fetch"
     return pool
-  else:
-    pool = "fetch"
+  elif len(faves) < 150: # medium amount
+    #increase the likelihood/weight of using favorite images by .1% + floor constant
+    scaled = ((len(faves) * .001) + .25)
+    medium = random.randint(1,1000)
+    if medium <= scaled * 1000: # normalize scaled float for comparison /w random's int
+      pool = "faves"
+  elif len(faves) >= 250: # relatively large fave pool; fetch/fave weight parity
+    large = random.randint(1,2)
+    if large == 1:
+      pool = "faves"
     return pool
-
 def urlRandomizer():
   today = datetime.now()
   
