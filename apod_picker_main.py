@@ -194,9 +194,12 @@ def faves_updater():
           # rejoin w/ file ++ sep's
           relative_file = os.path.join(rel_path,file) 
           set_of_faves.add(relative_file)
+  print("set of f",set_of_faves,"\n\nsetF",setF)
+  print("set_diff",set_of_faves.difference(setF))
 
   uncounted_in_saves = list(set_of_saves.difference(setS))
   uncounted_in_faves = list(set_of_faves.difference(setF))
+  # print("U-IN-FAVES",uncounted_in_faves)
 
   f = list(set_of_faves)
   f.extend(uncounted_in_faves)
@@ -377,8 +380,8 @@ def main():
         image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
     # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
 
-    # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
     dup_check = duplicate_paths(img_url, configObj)  
+    # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
     if True in dup_check:
       set_desktop_background(dup_check[1])
     else:
