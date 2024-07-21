@@ -313,8 +313,6 @@ def qa(image):
   
   if image.mode != "RGB":
     image = image.convert("RGB")
-
-  print(image.size, "res:",w,h)
   
   # disp. orientation -> usable image aspect -> resolution scale factor 
   if w > h: # landscape
@@ -347,9 +345,6 @@ def qa(image):
       return image
     else:
       return None
-
-  #     if w > h: # check fit against monitor aspect to infer display orientation
-  #       image = image.rotate(90, expand=True)
 
 def date_comparator(configObj):
   # stringify a date object; regionally formated
