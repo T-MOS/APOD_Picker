@@ -352,13 +352,11 @@ def date_comparator(configObj):
   
   # compare against record
   if dateStr != configObj['last daily']:
-    # img_url, description = fetch_apod_data() #  standard 
     configObj['last daily'] = dateStr # update configObj w/ new date str
     dump2json(configObj)
     return False
   else: # matched; likely a rerun...
     return True
-    # img_url, description = fetch_apod_data(True) # ...randomized
 
 def main():
   configObj = faves_updater()
