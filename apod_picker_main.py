@@ -25,17 +25,24 @@ def image_pool_selector(config):
     if small <= 25: #25% chance to use image(s) from the  faves pool
       pool = "faves"
     return pool
-  elif len(faves) < 150: # medium amount
+  
+  elif 10 <= len(faves) < 150: # medium amount
     #increase the likelihood/weight of using favorite images by .1% + floor constant
     scaled = ((len(faves) * .001) + .25)
     medium = random.randint(1,1000)
     if medium <= scaled * 1000: # normalize scaled float for comparison /w random's int
       pool = "faves"
-  elif len(faves) >= 250: # relatively large fave pool; fetch/fave weight parity
+    return pool
+
+  elif len(faves) >= 150: # relatively large fave pool; fetch/fave weight parity
     large = random.randint(1,2)
     if large == 1:
       pool = "faves"
     return pool
+
+  else:
+    return pool
+
 def urlRandomizer():
   today = datetime.now()
   
@@ -205,6 +212,7 @@ def faves_updater():
   
   configObj['faves'] = f
   dump2json(configObj)
+  configObj = open_config() # reinitialize config w/ updated values before returning it 
   return configObj
 
 def duplicate_paths(url, configs):
