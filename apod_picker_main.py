@@ -199,7 +199,6 @@ def faves_updater():
 
   uncounted_in_saves = list(set_of_saves.difference(setS))
   uncounted_in_faves = list(set_of_faves.difference(setF))
-  # print("U-IN-FAVES",uncounted_in_faves)
 
   f = list(set_of_faves)
   f.extend(uncounted_in_faves)
