@@ -17,6 +17,32 @@ from PIL import Image
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def errlog_setup():
+  logging.basicConfig(file='errlog.txt', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def to_errlog(error_message):
+  errlog_setup()
+  logging.error(error_message)
+
+def json_log(url, result):
+  configObj = open_config()
+  number = configObj['logs']['number']
+  log_entry = {
+    "number": number + 1,
+    "event info": {
+      "datetime": datetime.now().strftime("%Y-%m-%d"),
+      "url": url,
+      "results":{
+        "duplicate check output": [],
+        "setter": []
+      }
+    }
+  }
+  if number == 1:
+    configObj['logs'] = log_entry
+  else:
+    configObj['logs'].append(log_entry)
+
 def image_pool_selector(config):
   faves = config['faves']
   pool = "fetch"
@@ -79,7 +105,6 @@ def fetch_apod_data(use_random=False):
       response = requests.get(random_post)
     else:
       response = requests.get(baseUrl)
-    # response.raise_for_status()
     if response.status_code != 200:
       print(response.status_code)
       return None, None 
@@ -93,8 +118,7 @@ def fetch_apod_data(use_random=False):
       img_url = baseUrl + a['href'] # <- download/save from
       return img_url, simple_formatter(description) 
   except requests.RequestException as e:
-    logging.error("Error",f"Failed to fetch APOD data: {e}")
-    # fetch_apod_data(True)
+    to_errlog(f"Failed to fetch APOD data: {e}")
     return None, None
 
 def simple_formatter(text):
@@ -160,7 +184,7 @@ def open_config():
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError):
     logging.warning("config.json not found or invalid, making a default configuration")
-    
+    to_errlog(FileNotFoundError,json.JSONDecodeError)
     configObj = {'base path': '', 'keep': 1, 'saves': [], 'faves': [],}
   return configObj
 
@@ -170,6 +194,7 @@ def dump2json(config):
       json.dump(config, out, indent=2)
   except Exception as e:
     logging.debug(f"{e}")
+    to_errlog(f"JSON error: {e}")
 
 def faves_updater():
   configObj = open_config()
@@ -234,11 +259,9 @@ def duplicate_paths(url, configs):
     return None, clean_filename# no paths
 
 def select_save_path(input, title):
-  try:
-    with open('config.json', 'r') as f:
-      configObj = json.load(f)
-  except(FileNotFoundError, json.JSONDecodeError):
-    logging.error("Error", f"Failed to load configuration file. {e}")
+  with open('config.json', 'r') as f:
+    configObj = json.load(f)
+
   
   defaultDir = configObj.get('base path')
   if defaultDir == "": #empty str = first run or missing config
@@ -253,7 +276,7 @@ def select_save_path(input, title):
       input.save(file_path)
       return file_path
     except Exception as e:
-      logging.error("Error", f"Failed to save image: {e}")
+      to_errlog(f"Failed to save image: {e}")
   return None
 
 def setter_no_save(image):
