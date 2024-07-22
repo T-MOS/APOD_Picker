@@ -17,31 +17,25 @@ from PIL import Image
 
 logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def errlog_setup():
-  logging.basicConfig(file='errlog.txt', level=logging.ERROR, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(file='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 def to_errlog(error_message):
-  errlog_setup()
   logging.error(error_message)
 
-def json_log(url, result):
+def json_log(url, results):
   configObj = open_config()
-  number = configObj['logs']['number']
+  log = configObj['logs']
   log_entry = {
-    "number": number + 1,
-    "event info": {
-      "datetime": datetime.now().strftime("%Y-%m-%d"),
-      "url": url,
-      "results":{
-        "duplicate check output": [],
-        "setter": []
-      }
+    "url": url,
+    "results":{
+      "setter used": results[0],
+      "image": results[1]
     }
   }
-  if number == 1:
-    configObj['logs'] = log_entry
-  else:
-    configObj['logs'].append(log_entry)
+  logging.info(json.dumps(log_entry, indent=2))
+  configObj['last attempt'] = log_entry
+
 
 def image_pool_selector(config):
   faves = config['faves']
@@ -182,10 +176,10 @@ def open_config():
   try:
     with open('config.json', 'r') as f:
       configObj = json.load(f)
-  except(FileNotFoundError, json.JSONDecodeError):
+  except(FileNotFoundError, json.JSONDecodeError) as e:
     logging.warning("config.json not found or invalid, making a default configuration")
-    to_errlog(FileNotFoundError,json.JSONDecodeError)
-    configObj = {'base path': '', 'keep': 1, 'saves': [], 'faves': [],}
+    to_errlog(e)
+    configObj = {}
   return configObj
 
 def dump2json(config):
@@ -193,7 +187,6 @@ def dump2json(config):
     with open('config.json', 'w') as out:
       json.dump(config, out, indent=2)
   except Exception as e:
-    logging.debug(f"{e}")
     to_errlog(f"JSON error: {e}")
 
 def faves_updater():
@@ -385,7 +378,7 @@ def date_comparator(configObj):
 
 def main():
   configObj = faves_updater()
-
+  results4log = []
   pool = image_pool_selector(configObj)
   if pool == "fetch":
     useRandom = date_comparator(configObj)
