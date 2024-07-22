@@ -45,7 +45,6 @@ def image_pool_selector(config):
     if small <= 25: #25% chance to use image(s) from the  faves pool
       pool = "faves"
     return pool
-  
   elif 10 <= len(faves) < 150: # medium amount
     #increase the likelihood/weight of using favorite images by .1% + floor constant
     scaled = ((len(faves) * .001) + .25)
@@ -53,7 +52,6 @@ def image_pool_selector(config):
     if medium <= scaled * 1000: # normalize scaled float for comparison /w random's int
       pool = "faves"
     return pool
-
   elif len(faves) >= 150: # relatively large fave pool; fetch/fave weight parity
     large = random.randint(1,2)
     if large == 1:
@@ -369,25 +367,24 @@ def date_comparator(configObj):
   dateStr = datetime.now().strftime('%x')
   
   # compare against record
-  if dateStr != configObj['last daily']:
+  if dateStr != configObj['last daily']: # FIRST OF DAY
     configObj['last daily'] = dateStr # update configObj w/ new date str
     dump2json(configObj)
     return False
-  else: # matched; likely a rerun...
+  else: # likely a RERUN...
     return True
 
 def main():
   configObj = faves_updater()
   results4log = []
   pool = image_pool_selector(configObj)
+  
   if pool == "fetch":
-    useRandom = date_comparator(configObj)
-
     img_url, description = None, None
     image = None
-
     while (not img_url or not image):
-      img_url, description = fetch_apod_data(useRandom)
+      daily = date_comparator(configObj)
+      img_url, description = fetch_apod_data(daily)
       if img_url:
         print(img_url)
         image_response = requests.get(img_url)
@@ -408,7 +405,7 @@ def main():
           logging.debug("New Desktop background FETCHED/set")
       else:
         setter_no_save(image)
-  else: # from "faves"
+  else: # from... pool = "faves"
     shuffaves = configObj['faves']
     random.shuffle(shuffaves)
     path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
