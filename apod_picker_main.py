@@ -15,26 +15,27 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+#check for &/or init attempts log
+if not os.path.exists('info.txt'):
+  with open('info.txt','a') as file:
+    dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
+    file.write(f"initialized {dt}\n\n")
 
-logging.basicConfig(file='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 
 def to_errlog(error_message):
   logging.error(error_message)
 
-def json_log(url, results):
-  configObj = open_config()
-  log = configObj['logs']
+def json_log(pool,url,dup,source):
   log_entry = {
+    "pool": pool,
     "url": url,
-    "results":{
-      "setter used": results[0],
-      "image": results[1]
-    }
+    "duplicate": dup,
+    "image": source
   }
   logging.info(json.dumps(log_entry, indent=2))
-  configObj['last attempt'] = log_entry
 
 
 def image_pool_selector(config):
@@ -378,7 +379,7 @@ def main():
   configObj = faves_updater()
   results4log = []
   pool = image_pool_selector(configObj)
-  
+
   if pool == "fetch":
     img_url, description = None, None
     image = None
@@ -396,6 +397,7 @@ def main():
     # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
     if True in dup_check:
       set_desktop_background(dup_check[1])
+      json_log(pool,img_url, "Duplicate found", dup_check[1])
     else:
       if configObj['keep'] > 0: # SAVE -> set
         image_path = select_save_path(image, dup_check[1])
@@ -403,14 +405,19 @@ def main():
         if image_path:
           set_desktop_background(image_path)
           logging.debug("New Desktop background FETCHED/set")
+          json_log(pool,img_url, "Original; saving", image_path)
       else:
         setter_no_save(image)
+        json_log(pool,img_url, "Original; temporary", image)
+
   else: # from... pool = "faves"
     shuffaves = configObj['faves']
     random.shuffle(shuffaves)
-    path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
-    set_desktop_background(path)
-    logging.debug(f"OLD Desktop background FAVES -> set {path}")
+    image_path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
+    set_desktop_background(image_path)
+    logging.debug(f"OLD Desktop background FAVES -> set {image_path}")
+    json_log(pool, "...\\faves...", "", shuffaves[0])
+
 
 
   # try:
