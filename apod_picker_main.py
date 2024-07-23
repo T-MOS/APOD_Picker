@@ -28,14 +28,14 @@ logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s
 def to_errlog(error_message):
   logging.error(error_message)
 
-def json_log(pool,url,dup,source):
+def json_log(pool,url,dup,image):
   log_entry = {
     "pool": pool,
-    "url": url,
+    "url/source": url,
     "duplicate": dup,
-    "image": source
+    "image": image
   }
-  logging.info(json.dumps(log_entry, indent=2),"\n\n")
+  logging.info(json.dumps(log_entry, indent=2)+"\n")
 
 
 def image_pool_selector(config):
@@ -239,8 +239,10 @@ def faves_updater():
     os.rename(orphan, foster)
   
   configObj['faves'] = f
+  print(configObj)
   dump2json(configObj)
-  configObj = open_config() # reinitialize config w/ updated values before returning it 
+  configObj = open_config() # reinitialize config w/ updated values before returning it
+  print(configObj)
   return configObj
 
 def duplicate_paths(url, configs):
@@ -384,7 +386,6 @@ def date_comparator(configObj):
 
 def main():
   configObj = faves_updater()
-  results4log = []
   pool = image_pool_selector(configObj)
 
   if pool == "fetch":
