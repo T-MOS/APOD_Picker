@@ -35,7 +35,7 @@ def json_log(pool,url,dup,source):
     "duplicate": dup,
     "image": source
   }
-  logging.info(json.dumps(log_entry, indent=2))
+  logging.info(json.dumps(log_entry, indent=2),"\n\n")
 
 
 def image_pool_selector(config):
@@ -178,7 +178,16 @@ def open_config():
   except(FileNotFoundError, json.JSONDecodeError) as e:
     logging.warning("config.json not found or invalid, making a default configuration")
     to_errlog(e)
-    configObj = {}
+  finally:
+    if not os.path.exists("config.json"):
+      with open('config.json','w'):
+        configObj = {
+          "base path": "",
+          "keep": 1,
+          "last daily": "",
+          "saves": [],
+          "faves": []
+        }
   return configObj
 
 def dump2json(config):
@@ -251,11 +260,9 @@ def duplicate_paths(url, configs):
     return None, clean_filename# no paths
 
 def select_save_path(input, title):
-  with open('config.json', 'r') as f:
-    configObj = json.load(f)
-
-  
+  configObj = open_config()
   defaultDir = configObj.get('base path')
+
   if defaultDir == "": #empty str = first run or missing config
     defaultDir = default_dir_initializer()
   else:
