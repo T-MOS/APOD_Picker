@@ -85,30 +85,35 @@ def urlRandomizer():
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
-def fetch_apod_data(use_random=False):
+def fetch_apod_data(use_random=False,max=1):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  try:
-    if use_random:
-      random_post = baseUrl + urlRandomizer()
-      response = requests.get(random_post)
-    else:
-      response = requests.get(baseUrl)
-    if response.status_code != 200:
-      print(response.status_code)
-      return None, None 
-    soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
-    img_tag = soup.find('img')
-    if img_tag is None: # no usable image --> exit for retry
-      return None, None
-    else:
+  tries=0
+  while tries <= max:  
+    try:
+      if use_random:
+        random_post = baseUrl + urlRandomizer()
+        response = requests.get(random_post)
+      else:
+        response = requests.get(baseUrl)
+      if response.status_code != 200:
+        print(response.status_code)
+        tries+=1
+        continue
+      soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
+      img_tag = soup.find('img')
+      if img_tag is None: # no usable image --> exit for retry
+        tries+=1
+        continue
+      
       description = img_tag.find_next('p').text.strip() # Extract description text from: descendant <p>
       a = img_tag.find_parent('a') # Grab parent's href for full resolution (<a>[href] !== <img>[src])
       img_url = baseUrl + a['href'] # <- download/save from
       return img_url, simple_formatter(description) 
-  except requests.RequestException as e:
-    to_errlog(f"Failed to fetch APOD data: {e}\n")
-    return None, None
+    
+    except requests.RequestException as e:
+      to_errlog(f"Failed to fetch APOD data: {e}\n")
+  return None, None
 
 def simple_formatter(text):
     if text:
@@ -216,7 +221,6 @@ def faves_updater():
           # rejoin w/ file ++ sep's
           relative_file = os.path.join(rel_path,file) 
           new_set_of_faves.add(relative_file)
-  print(new_set_of_faves)
   uncounted_in_saves = list(set_of_saves.difference(setS))
 
   f = list(new_set_of_faves)
@@ -237,18 +241,17 @@ def faves_updater():
   return configObj
 
 def duplicate_paths(url, configs):
-  files = configs['saves'] + configs['faves']
-
+  files = configs['faves'] + configs['saves']
   clean_filename = sanitize_filename(url).group(1)
 
   if len(files) > 0:
     for file in files:
       if clean_filename not in file:
         logging.debug(f"Sanitized filename: {clean_filename}")
-        return False, clean_filename # pass to select_save()
       else:
         logging.debug(f"dup found @ {file}")
         return True, file #path of existing image
+    return False, clean_filename # pass to select_save()
   else:
     return None, clean_filename# no paths
 
@@ -390,7 +393,6 @@ def main():
     # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
 
     dup_check = duplicate_paths(img_url, configObj)
-    print(dup_check)  
     # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
     if True in dup_check:
       set_desktop_background(dup_check[1])
