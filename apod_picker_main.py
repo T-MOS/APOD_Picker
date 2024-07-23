@@ -97,7 +97,7 @@ def fetch_apod_data(use_random=False,max=1):
       else:
         response = requests.get(baseUrl)
       if response.status_code != 200:
-        print(response.status_code)
+        logging.info(f"{response.status_code}\n URL...{response.url}")
         tries+=1
         continue
       soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
