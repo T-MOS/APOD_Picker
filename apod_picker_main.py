@@ -145,9 +145,7 @@ def default_dir_initializer():
   default_relative_path = os.path.join(current_dir, 'saves')
   # makes the main saves dir while making the faves subdir 
   make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
-  configObj['base path'] = default_relative_path
-
-  dump2json(configObj)
+  
   return default_relative_path
 
 def update_saves(saved):
@@ -199,14 +197,17 @@ def dump2json(config):
 
 def faves_updater():
   configObj = open_config()
-  basePath = configObj['base path']
+  # basePath = configObj['base path']
   s = configObj['saves']
   f = configObj['faves']
   setS = set(s)
   set_of_saves = set()
   new_set_of_faves = set()
 
-  for root,sub,files in os.walk(basePath):
+  if configObj['base path'] == "": #empty str = first run or missing config
+    configObj["base path"] = default_dir_initializer()
+
+  for root,sub,files in os.walk(configObj["base path"]):
     for file in files:
       if (".jpg" or ".png" or ".bmp") in file:
         if 'faves' not in root: # image in \saves
@@ -219,25 +220,23 @@ def faves_updater():
           # rejoin w/ file ++ sep's
           relative_file = os.path.join(rel_path,file) 
           new_set_of_faves.add(relative_file)
-
+  print(new_set_of_faves)
   uncounted_in_saves = list(set_of_saves.difference(setS))
 
   f = list(new_set_of_faves)
-  print(f)
   f.extend(uncounted_in_saves)
 
-  faves_dir = os.path.join(basePath,'faves')
+  faves_dir = os.path.join(configObj["base path"],'faves')
   os.makedirs(faves_dir, exist_ok=True) # ensure faves exists before rename() moves 
 
   for img in uncounted_in_saves:
-    orphan = os.path.join(basePath,img)
+    orphan = os.path.join(configObj["base path"],img)
     foster = os.path.join(faves_dir,img)
     try:
       os.rename(orphan, foster)
     except Exception as e:
       to_errlog(f"{e}\n")
   configObj['faves'] = f
-  print(configObj)
   dump2json(configObj)
   return configObj
 
@@ -261,11 +260,9 @@ def select_save_path(input, title):
   configObj = open_config()
   defaultDir = configObj.get('base path')
 
-  if defaultDir == "": #empty str = first run or missing config
-    defaultDir = default_dir_initializer()
-  else:
-    if os.path.exists(defaultDir) == False:
-      os.makedirs(defaultDir,exist_ok=True)
+  if os.path.exists(defaultDir) == False:
+    os.makedirs(defaultDir,exist_ok=True)
+
   file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
     try:
@@ -391,7 +388,6 @@ def main():
       daily = date_comparator(configObj)
       img_url, description = fetch_apod_data(daily)
       if img_url:
-        print(img_url)
         image_response = requests.get(img_url)
         image_response.raise_for_status()
         image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
