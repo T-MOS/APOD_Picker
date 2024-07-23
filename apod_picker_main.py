@@ -111,7 +111,7 @@ def fetch_apod_data(use_random=False):
       img_url = baseUrl + a['href'] # <- download/save from
       return img_url, simple_formatter(description) 
   except requests.RequestException as e:
-    to_errlog(f"Failed to fetch APOD data: {e}")
+    to_errlog(f"Failed to fetch APOD data: {e}\n")
     return None, None
 
 def simple_formatter(text):
@@ -177,7 +177,7 @@ def open_config():
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError) as e:
     logging.warning("config.json not found or invalid, making a default configuration")
-    to_errlog(e)
+    to_errlog(f"{e}\n")
   finally:
     if not os.path.exists("config.json"):
       with open('config.json','w'):
@@ -195,7 +195,7 @@ def dump2json(config):
     with open('config.json', 'w') as out:
       json.dump(config, out, indent=2)
   except Exception as e:
-    to_errlog(f"JSON error: {e}")
+    to_errlog(f"JSON error: {e}\n")
 
 def faves_updater():
   configObj = open_config()
@@ -203,9 +203,8 @@ def faves_updater():
   s = configObj['saves']
   f = configObj['faves']
   setS = set(s)
-  setF = set(f)
   set_of_saves = set()
-  set_of_faves = set()
+  new_set_of_faves = set()
 
   for root,sub,files in os.walk(basePath):
     for file in files:
@@ -219,15 +218,12 @@ def faves_updater():
           rel_path = root[faves_index:].strip(os.sep)
           # rejoin w/ file ++ sep's
           relative_file = os.path.join(rel_path,file) 
-          set_of_faves.add(relative_file)
-  print("set of f",set_of_faves,"\n\nsetF",setF)
-  print("set_diff",set_of_faves.difference(setF))
+          new_set_of_faves.add(relative_file)
 
   uncounted_in_saves = list(set_of_saves.difference(setS))
-  uncounted_in_faves = list(set_of_faves.difference(setF))
 
-  f = list(set_of_faves)
-  f.extend(uncounted_in_faves)
+  f = list(new_set_of_faves)
+  print(f)
   f.extend(uncounted_in_saves)
 
   faves_dir = os.path.join(basePath,'faves')
@@ -236,13 +232,13 @@ def faves_updater():
   for img in uncounted_in_saves:
     orphan = os.path.join(basePath,img)
     foster = os.path.join(faves_dir,img)
-    os.rename(orphan, foster)
-  
+    try:
+      os.rename(orphan, foster)
+    except Exception as e:
+      to_errlog(f"{e}\n")
   configObj['faves'] = f
   print(configObj)
   dump2json(configObj)
-  configObj = open_config() # reinitialize config w/ updated values before returning it
-  print(configObj)
   return configObj
 
 def duplicate_paths(url, configs):
@@ -277,7 +273,7 @@ def select_save_path(input, title):
       input.save(file_path)
       return file_path
     except Exception as e:
-      to_errlog(f"Failed to save image: {e}")
+      to_errlog(f"Failed to save image: {e}\n")
   return None
 
 def setter_no_save(image):
