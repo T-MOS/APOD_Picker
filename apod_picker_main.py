@@ -20,10 +20,7 @@ if not os.path.exists('info.txt'):
   with open('info.txt','a') as file:
     dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
     file.write(f"initialized {dt}\n\n")
-
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-
 
 def to_errlog(error_message):
   logging.error(error_message)
@@ -36,7 +33,6 @@ def json_log(pool,url,dup,image):
     "image": image
   }
   logging.info(json.dumps(log_entry, indent=2)+"\n")
-
 
 def image_pool_selector(config):
   faves = config['faves']
@@ -393,7 +389,8 @@ def main():
         image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
     # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
 
-    dup_check = duplicate_paths(img_url, configObj)  
+    dup_check = duplicate_paths(img_url, configObj)
+    print(dup_check)  
     # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
     if True in dup_check:
       set_desktop_background(dup_check[1])
