@@ -1,4 +1,4 @@
-import ctypes
+from ctypes import windll
 import os
 import sys
 import platform
@@ -42,13 +42,14 @@ def get_base_path():
   return app_path
 
 def default_dir_initializer():
-  configObj = open_config()  
+  configObj = open_config()
   base_dir = get_base_path()
-  # current_dir = os.path.dirname(os.path.realpath(__file__))
   default_relative_path = os.path.join(base_dir, 'saves')
+  
   # makes the main saves dir while making the faves subdir 
   make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
-  
+  configObj['base path'] = default_relative_path
+  dump2json(configObj)
   return default_relative_path
 
 def image_pool_selector(config):
@@ -211,8 +212,8 @@ def faves_updater():
   set_of_saves = set()
   new_set_of_faves = set()
 
-  if configObj['base path'] == "": #empty str = first run or missing config
-    configObj["base path"] = default_dir_initializer()
+  # if configObj['base path'] == "": #empty str = first run or missing config
+  #   configObj["base path"] = default_dir_initializer()
 
   for root,sub,files in os.walk(configObj["base path"]):
     for file in files:
@@ -299,7 +300,7 @@ def set_desktop_background(image_path):
       os.system(setterCommand)
     elif platform.system() == 'Windows':
       SPI_SETDESKWALLPAPER = 0x0014
-      ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
+      windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
     elif platform.system() == 'Darwin':
       script = f"""
       tell application "Finder"
@@ -321,9 +322,9 @@ def get_resolution():
     return w, h
   
   elif platform.system() == 'Windows':
-    scale = ctypes.windll.shcore.GetScaleFactorForDevice(0) #, ctypes.byref(c))
+    scale = windll.shcore.GetScaleFactorForDevice(0)
     factor = 1 # Initialize the scaling factor to 1
-    user32 = ctypes.windll.user32
+    user32 = windll.user32
     w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
     
     if scale > 100: # Check if layout scale is greater than 100%
@@ -383,6 +384,7 @@ def date_comparator(configObj):
     return True
 
 def main():
+  default_dir_initializer()
   configObj = faves_updater()
   pool = image_pool_selector(configObj)
 
