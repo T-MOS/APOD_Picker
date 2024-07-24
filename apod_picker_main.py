@@ -180,7 +180,7 @@ def open_config():
       with open('config.json','w'):
         configObj = {
           "base path": "",
-          "keep": 1,
+          "keep": 4,
           "last daily": "",
           "saves": [],
           "faves": []
