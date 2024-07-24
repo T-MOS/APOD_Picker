@@ -7,3 +7,6 @@ config.json
 exiftool.exe
 /share
 info.txt
+/build
+/dist
+apod_picker_main.spec
