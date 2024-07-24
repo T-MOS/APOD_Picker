@@ -1,5 +1,6 @@
 import ctypes
 import os
+import sys
 import platform
 import re
 import json
@@ -31,6 +32,24 @@ def json_log(pool,url,dup,image):
     "image": image
   }
   logging.info(json.dumps(log_entry, indent=2)+"\n")
+
+def get_base_path():
+  if getattr(sys,'frozen',False): # executable
+    app_path = os.path.dirname(sys.executable)
+  else: # script
+    app_path = os.path.dirname(os.path.abspath(__file__))
+
+  return app_path
+
+def default_dir_initializer():
+  configObj = open_config()  
+  base_dir = get_base_path()
+  # current_dir = os.path.dirname(os.path.realpath(__file__))
+  default_relative_path = os.path.join(base_dir, 'saves')
+  # makes the main saves dir while making the faves subdir 
+  make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
+  
+  return default_relative_path
 
 def image_pool_selector(config):
   faves = config['faves']
@@ -86,7 +105,7 @@ def urlRandomizer():
 def fetch_apod_data(use_random=False,max=2):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
-  tries=0
+  tries = 0
   while tries <= max:  
     try:
       if use_random:
@@ -136,16 +155,6 @@ def sanitize_filename(url_string):
   pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
   rinsed = re.search(pattern, url_string)
   return rinsed
-
-def default_dir_initializer():
-  configObj = open_config()  
-  
-  current_dir = os.path.dirname(os.path.realpath(__file__))
-  default_relative_path = os.path.join(current_dir, 'saves')
-  # makes the main saves dir while making the faves subdir 
-  make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
-  
-  return default_relative_path
 
 def update_saves(saved):
   configObj = open_config()
@@ -224,7 +233,7 @@ def faves_updater():
   f.extend(uncounted_in_saves)
 
   faves_dir = os.path.join(configObj["base path"],'faves')
-  os.makedirs(faves_dir, exist_ok=True) # ensure faves exists before rename() moves 
+  # os.makedirs(faves_dir, exist_ok=True) # ensure faves exists before rename() moves 
 
   for img in uncounted_in_saves:
     orphan = os.path.join(configObj["base path"],img)
@@ -250,7 +259,7 @@ def duplicate_paths(url, configs):
         return True, file #path of existing image
     return False, clean_filename # pass to select_save()
   else:
-    return None, clean_filename# no paths
+    return None, clean_filename # no paths
 
 def select_save_path(input, title):
   configObj = open_config()
