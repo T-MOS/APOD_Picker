@@ -8,10 +8,8 @@ import requests
 import logging
 import tempfile
 import tkinter as tk
-# from collections import Counter
 from datetime import datetime
 from io import BytesIO
-# from exiftool import ExifToolHelper
 from bs4 import BeautifulSoup
 from PIL import Image
 
@@ -85,7 +83,7 @@ def urlRandomizer():
   urlFormatted = f"ap{jointDate}.html"
   return urlFormatted
 
-def fetch_apod_data(use_random=False,max=1):
+def fetch_apod_data(use_random=False,max=2):
   # Send GET request to APOD; parse HTML w/ BeautifulSoup
   baseUrl = 'https://apod.nasa.gov/apod/'
   tries=0
@@ -198,7 +196,6 @@ def dump2json(config):
 
 def faves_updater():
   configObj = open_config()
-  # basePath = configObj['base path']
   s = configObj['saves']
   f = configObj['faves']
   setS = set(s)
@@ -390,7 +387,7 @@ def main():
         image_response = requests.get(img_url)
         image_response.raise_for_status()
         image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
-    # logging.debug(f"Fetched APOD data: \n\nimg_url: {img_url} \n\ndescription[:150]: {description[:150]}...\n")
+    
 
     dup_check = duplicate_paths(img_url, configObj)
     # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
@@ -416,17 +413,6 @@ def main():
     set_desktop_background(image_path)
     logging.debug(f"OLD Desktop background FAVES -> set {image_path}")
     json_log(pool, "...\\faves...", "", shuffaves[0])
-
-
-
-  # try:
-  #   with ExifToolHelper() as et:
-  #     # et.set_tags('HaloWinMoon48_claro.jpg',tags={"ImageDescription": description})
-  #     for d in et.get_metadata(image_path):
-  #       for k,v in d.items():
-  #         logging.debug((f"Meta:{k} = {v}"))
-  # except FileNotFoundError:
-  #   logging.warning("ExifTool not found. Continuing without extracting metadata.")
 
 if __name__=="__main__":
   main()
