@@ -1,4 +1,4 @@
-from ctypes import windll
+import ctypes
 import os
 import sys
 import platform
