@@ -8,7 +8,7 @@ import random
 import requests
 import logging
 import tempfile
-import tkinter as tk
+from tkinter import Tk
 from datetime import datetime
 from io import BytesIO
 from bs4 import BeautifulSoup
@@ -316,7 +316,7 @@ def set_desktop_background(image_path):
 def get_resolution():
   if platform.system() == ('Darwin' or 'Linux'):
     
-    root = tk.Tk()
+    root = Tk()
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root.destroy()
     return w, h
