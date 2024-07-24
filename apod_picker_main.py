@@ -212,9 +212,6 @@ def faves_updater():
   set_of_saves = set()
   new_set_of_faves = set()
 
-  # if configObj['base path'] == "": #empty str = first run or missing config
-  #   configObj["base path"] = default_dir_initializer()
-
   for root,sub,files in os.walk(configObj["base path"]):
     for file in files:
       if (".jpg" or ".png" or ".bmp") in file:
@@ -234,7 +231,6 @@ def faves_updater():
   f.extend(uncounted_in_saves)
 
   faves_dir = os.path.join(configObj["base path"],'faves')
-  # os.makedirs(faves_dir, exist_ok=True) # ensure faves exists before rename() moves 
 
   for img in uncounted_in_saves:
     orphan = os.path.join(configObj["base path"],img)
