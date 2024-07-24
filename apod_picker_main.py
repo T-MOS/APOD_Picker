@@ -13,13 +13,13 @@ from datetime import datetime
 from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
-
 #check for &/or init attempts log
 if not os.path.exists('info.txt'):
   with open('info.txt','a') as file:
     dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
 
 def to_errlog(error_message):
   logging.error(error_message)
@@ -383,6 +383,7 @@ def main():
   default_dir_initializer()
   configObj = faves_updater()
   pool = image_pool_selector(configObj)
+  Image.MAX_IMAGE_PIXELS = 136037232 #adjust decompression bomb warning threshold to largest APOD image yet
 
   if pool == "fetch":
     img_url, description = None, None
@@ -393,8 +394,10 @@ def main():
       if img_url:
         image_response = requests.get(img_url)
         image_response.raise_for_status()
-        image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
-    
+        try:
+          image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
+        except Exception as e:
+          to_errlog(f"{e}\n")
 
     dup_check = duplicate_paths(img_url, configObj)
     # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
