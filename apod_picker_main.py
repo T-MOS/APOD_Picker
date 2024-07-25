@@ -1,4 +1,5 @@
 import ctypes
+from ctypes import wintypes
 import os
 import sys
 import platform
@@ -13,6 +14,7 @@ from datetime import datetime
 from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
+
 #check for &/or init attempts log
 if not os.path.exists('info.txt'):
   with open('info.txt','a') as file:
@@ -20,6 +22,21 @@ if not os.path.exists('info.txt'):
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def multi_disp():
+  monitors = []
+  u32 = ctypes.windll.user32
+  class MONITORINFO(ctypes.Structure):
+    _fields_ = [
+      ("cbSize", wintypes.DWORD),
+      ("rcMonitor", wintypes.RECT),
+      ("rcWork", wintypes.RECT),
+      ("dwFlags", wintypes.DWORD)
+  ]
+  
+  def monitors_enum_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
+    monitors.append(hMonitor)
+    return True
+  
 
 def to_errlog(error_message):
   logging.error(error_message)
@@ -296,7 +313,7 @@ def set_desktop_background(image_path):
       os.system(setterCommand)
     elif platform.system() == 'Windows':
       SPI_SETDESKWALLPAPER = 0x0014
-      windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
+      ctypes.windll.user32.SystemParametersInfoW(SPI_SETDESKWALLPAPER, 0, image_path, 3)
     elif platform.system() == 'Darwin':
       script = f"""
       tell application "Finder"
@@ -318,9 +335,9 @@ def get_resolution():
     return w, h
   
   elif platform.system() == 'Windows':
-    scale = windll.shcore.GetScaleFactorForDevice(0)
+    scale = ctypes.windll.shcore.GetScaleFactorForDevice(0)
     factor = 1 # Initialize the scaling factor to 1
-    user32 = windll.user32
+    user32 = ctypes.windll.user32
     w, h = user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
     
     if scale > 100: # Check if layout scale is greater than 100%
