@@ -22,9 +22,10 @@ if not os.path.exists('info.txt'):
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def multi_disp():
+def win_multi_disp():
   monitors = []
   u32 = ctypes.windll.user32
+
   class MONITORINFO(ctypes.Structure):
     _fields_ = [
       ("cbSize", wintypes.DWORD),
@@ -33,10 +34,22 @@ def multi_disp():
       ("dwFlags", wintypes.DWORD)
   ]
   
-  def monitors_enum_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
+  def monitor_enum_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
     monitors.append(hMonitor)
     return True
   
+  #callback
+  MonitorEnumProc = ctypes.WINFUNCTYPE(ctypes.c_int, wintypes.HMONITOR, wintypes.HDC, ctypes.POINTER(wintypes.RECT), wintypes.LPARAM)
+  
+  u32.EnumDisplayMonitors(None, None, MonitorEnumProc(monitor_enum_proc), 0)
+
+  def multi_set(path,monitor_index):
+    SPI_SETDESKWALLPAPER = 0x0014
+    #convert to wide string
+    image_path_w = ctypes.create_unicode_buffer(path)
+    #set
+    result = u32.SystemParametersInfoW(SPI_SETDESKWALLPAPER,0,image_path_w,3)
+
 
 def to_errlog(error_message):
   logging.error(error_message)
