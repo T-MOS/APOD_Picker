@@ -15,6 +15,8 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
 
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 #check for &/or init attempts log
 if not os.path.exists('info.txt'):
   with open('info.txt','a') as file:
@@ -22,37 +24,8 @@ if not os.path.exists('info.txt'):
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def win_multi_disp():
-  monitors = []
-  u32 = ctypes.windll.user32
-
-  class MONITORINFO(ctypes.Structure):
-    _fields_ = [
-      ("cbSize", wintypes.DWORD),
-      ("rcMonitor", wintypes.RECT),
-      ("rcWork", wintypes.RECT),
-      ("dwFlags", wintypes.DWORD)
-  ]
+# def imCombine():
   
-  def monitor_enum_proc(hMonitor, hdcMonitor, lprcMonitor, dwData):
-    monitors.append(hMonitor)
-    return True
-  
-  #callback
-  MonitorEnumProc = ctypes.WINFUNCTYPE(ctypes.c_int, wintypes.HMONITOR, wintypes.HDC, ctypes.POINTER(wintypes.RECT), wintypes.LPARAM)
-  
-  u32.EnumDisplayMonitors(None, None, MonitorEnumProc(monitor_enum_proc), 0)
-
-  def multi_set(path,monitor_index):
-    SPI_SETDESKWALLPAPER = 0x0014
-    #convert to wide string
-    # image_path_w = ctypes.create_unicode_buffer(path)
-    image_path_w = path.encode('utf-16')
-    #set
-    result = u32.SystemParametersInfoW(SPI_SETDESKWALLPAPER,0,image_path_w,3)
-
-SPIF_UPDATEINIFILE = 1
-SPIF_SENDWININICHANGE = 2
 
 def to_errlog(error_message):
   logging.error(error_message)
@@ -344,7 +317,6 @@ def set_desktop_background(image_path):
 
 def get_resolution():
   if platform.system() == ('Darwin' or 'Linux'):
-    
     root = Tk()
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
     root.destroy()
@@ -359,6 +331,7 @@ def get_resolution():
     if scale > 100: # Check if layout scale is greater than 100%
       factor = (scale/100) - 1
       w, h = w+w*factor, h+h*factor
+    print(w,h)
     return w, h
 
 def qa(image):
