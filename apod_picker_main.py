@@ -46,10 +46,13 @@ def win_multi_disp():
   def multi_set(path,monitor_index):
     SPI_SETDESKWALLPAPER = 0x0014
     #convert to wide string
-    image_path_w = ctypes.create_unicode_buffer(path)
+    # image_path_w = ctypes.create_unicode_buffer(path)
+    image_path_w = path.encode('utf-16')
     #set
     result = u32.SystemParametersInfoW(SPI_SETDESKWALLPAPER,0,image_path_w,3)
 
+SPIF_UPDATEINIFILE = 1
+SPIF_SENDWININICHANGE = 2
 
 def to_errlog(error_message):
   logging.error(error_message)
