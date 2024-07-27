@@ -41,13 +41,23 @@ def resize(image,mn):
   return resized_image
 
 def imCombine(images):
-  resizeds = []
+  resizeds = {}
+  width,height = int(),int()
   m = get_monitors()
+  
   for mn in m:
-    for image in images:
-      resizeds += resize(image, mn)
+    width += mn.width
+    if mn.height > height:
+      height = mn.height
+    for i, image in enumerate(images):
+      resizeds[f"{i}"] = resize(image, mn)
 
+  combo_canvas = Image.new('RGB', (width,height))
+  combo_canvas.paste(resizeds['0'], (0,0))
+  combo_canvas.paste(resizeds['1'], (m[0].width,((m[0].height - resizeds['1'].size[1])//2)))
+  combo_canvas.show()
 
+images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
 
 def to_errlog(error_message):
   logging.error(error_message)
