@@ -9,6 +9,7 @@ import random
 import requests
 import logging
 import tempfile
+from screeninfo import get_monitors
 from tkinter import Tk
 from datetime import datetime
 from io import BytesIO
@@ -24,7 +25,22 @@ if not os.path.exists('info.txt'):
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-# def imCombine():
+def resize(image):
+
+  # init dimensions
+  image = Image.open(image)
+  iw, ih = image.size
+  m = get_monitors()
+  mw, mh = m[1].width, m[1].height 
+
+  if iw > mw or ih > mh:
+    wscale = iw/mw
+    hscale = ih/mh
+    newiw, newih = int(iw/max(hscale,wscale)), int(ih/max(hscale,wscale))
+
+
+
+def imCombine(first, second):
   
 
 def to_errlog(error_message):
