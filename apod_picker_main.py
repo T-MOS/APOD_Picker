@@ -25,23 +25,29 @@ if not os.path.exists('info.txt'):
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
-def resize(image):
+def resize(image,mn):
 
   # init dimensions
   image = Image.open(image)
   iw, ih = image.size
+  mw, mh = mn.width, mn.height
+  wscale = iw/mw
+  hscale = ih/mh
+
+  #scale by relatively larger dim to constrain in disp.
+  newiw, newih = int(iw/max(hscale,wscale)), int(ih/max(hscale,wscale))
+  resized_image = image.resize((newiw,newih),Image.Resampling.LANCZOS)
+
+  return resized_image
+
+def imCombine(images):
+  resizeds = []
   m = get_monitors()
-  mw, mh = m[1].width, m[1].height 
-
-  if iw > mw or ih > mh:
-    wscale = iw/mw
-    hscale = ih/mh
-    newiw, newih = int(iw/max(hscale,wscale)), int(ih/max(hscale,wscale))
+  for mn in m:
+    for image in images:
+      resizeds += resize(image, mn)
 
 
-
-def imCombine(first, second):
-  
 
 def to_errlog(error_message):
   logging.error(error_message)
