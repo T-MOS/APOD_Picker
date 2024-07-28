@@ -50,16 +50,13 @@ def imCombine(images):
 
   pairs = zip(images,m) # zip strict?
 
-  for i, image in enumerate(pairs):
+  for i, (image,mn) in enumerate(pairs):
     resizeds[f"{i}"] = resize(image, mn)
-  
-  for mn in m:
-    width += mn.width
     if mn.height > height:
       height = mn.height
   
   for i, mn in enumerate(m):
-    combo_canvas = Image.new('RGB', (sum(mn[j] for j in range(i+1)),height))
+    combo_canvas = Image.new('RGB', (sum(m[j].width for j in range(i+1)),height))
   combo_canvas.paste(resizeds['0'], (0,0))
   combo_canvas.paste(resizeds['1'], (m[0].width,((m[0].height - resizeds['1'].size[1])//2)))
   combo_canvas.show()
