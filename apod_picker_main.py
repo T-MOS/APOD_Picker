@@ -54,11 +54,15 @@ def imCombine(images):
     resizeds[f"{i}"] = resize(image, mn)
     if mn.height > height:
       height = mn.height
-  
+
   for i, mn in enumerate(m):
-    combo_canvas = Image.new('RGB', (sum(m[j].width for j in range(i+1)),height))
+    combo_canvas_x,combo_canvas_y = sum(m[j].width for j in range(i+1)), height
+    if mn.y > 0: #if any monitor has pos. y offset grow canvas by y qty
+      combo_canvas_y = height+mn.y
+  
+  combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
   combo_canvas.paste(resizeds['0'], (0,0))
-  combo_canvas.paste(resizeds['1'], (m[0].width + (m[1].width - resizeds['1'].size[0])//2,(m[0].height - resizeds['1'].size[1])//2))
+  combo_canvas.paste(resizeds['1'], (m[0].width + (m[1].width - resizeds['1'].size[0])//2,((m[1].height - resizeds['1'].size[1])//2)+abs(m[0].y)))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
