@@ -58,7 +58,7 @@ def imCombine(images):
   for i, mn in enumerate(m):
     combo_canvas = Image.new('RGB', (sum(m[j].width for j in range(i+1)),height))
   combo_canvas.paste(resizeds['0'], (0,0))
-  combo_canvas.paste(resizeds['1'], (m[0].width,((m[0].height - resizeds['1'].size[1])//2)))
+  combo_canvas.paste(resizeds['1'], (m[0].width + (m[1].width - resizeds['1'].size[0])//2,(m[0].height - resizeds['1'].size[1])//2))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
