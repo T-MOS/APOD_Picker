@@ -42,17 +42,24 @@ def resize(image,mn):
 
 def imCombine(images):
   resizeds = {}
-  width,height = int(),int()
+  height = 0
   m = get_monitors()
+  
+  if len(images) != len(m):
+    to_errlog(f"{ValueError} -> images:monitors parity ")
+
+  pairs = zip(images,m) # zip strict?
+
+  for i, image in enumerate(pairs):
+    resizeds[f"{i}"] = resize(image, mn)
   
   for mn in m:
     width += mn.width
     if mn.height > height:
       height = mn.height
-    for i, image in enumerate(images):
-      resizeds[f"{i}"] = resize(image, mn)
-
-  combo_canvas = Image.new('RGB', (width,height))
+  
+  for i, mn in enumerate(m):
+    combo_canvas = Image.new('RGB', (sum(mn[j] for j in range(i+1)),height))
   combo_canvas.paste(resizeds['0'], (0,0))
   combo_canvas.paste(resizeds['1'], (m[0].width,((m[0].height - resizeds['1'].size[1])//2)))
   combo_canvas.show()
