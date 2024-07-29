@@ -56,12 +56,12 @@ def imCombine(images):
       height = mn.height
 
 
-  threshold = (m[0].height - m[1].height)
+  abs_threshold = abs((m[0].height - m[1].height))
 
   for i, mn in enumerate(m):
     combo_canvas_x = sum(m[j].width for j in range(i+1))
-    if (mn.y < -(threshold)) or (mn.y > threshold): 
-      combo_canvas_y = height+(abs(mn.y)-threshold) # increase ht of canvas by amt abs(y) past threshold val
+    if (mn.y < -(abs_threshold)) or (mn.y > abs_threshold): 
+      combo_canvas_y = height+(abs(mn.y)-abs_threshold) # increase ht of canvas by amt abs(y) past threshold val
 
   y_paste = ((m[1].height - resizeds['1'].size[1])//2)+abs(m[0].y)
 
