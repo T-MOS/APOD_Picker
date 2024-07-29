@@ -42,7 +42,8 @@ def resize(image,mn):
 
 def imCombine(images):
   resizeds = {}
-  combo_canvas_y = height = 0
+  combo_canvas_y = 0
+  combo_canvas_x = 0
   m = get_monitors()
   
   if len(images) != len(m):
@@ -52,23 +53,33 @@ def imCombine(images):
 
   for i, (image,mn) in enumerate(pairs):
     resizeds[f"{i}"] = resize(image, mn)
-    if mn.height > height:
-      height = mn.height
+    if mn.width > combo_canvas_x:
+      combo_canvas_x = mn.width
+    if mn.height > combo_canvas_y:
+      combo_canvas_y = mn.height
 
 
-  abs_threshold = abs((m[0].height - m[1].height))
+  # abs_threshold = abs((m[0].height - m[1].height))
 
   for i, mn in enumerate(m):
-    combo_canvas_x = sum(m[j].width for j in range(i+1))
-    if (mn.y < -(abs_threshold)) or (mn.y > abs_threshold): 
-      combo_canvas_y = height+(abs(mn.y)-abs_threshold) # increase ht of canvas by amt abs(y) past threshold val
-
-  y_paste = ((m[1].height - resizeds['1'].size[1])//2)+abs(m[0].y)
+    if (mn.x < 0):
+      combo_canvas_x += abs(mn.x)
+    elif (mn.x > 0):
+      if (mn.x + mn.width) > combo_canvas_x:
+        combo_canvas_x = mn.x + mn.width
+    elif (mn.y < 0):
+      combo_canvas_y += abs(mn.y)
+    elif (mn.y > 0):
+      if (mn.y + mn.height) > combo_canvas_y:
+        combo_canvas_y = mn.y + mn.height
+    
+  
+  # y_paste = ((m[1].height - resizeds['1'].size[1])//2)+abs(m[0].y)
 
 
   combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
   combo_canvas.paste(resizeds['0'], (0,0))
-  combo_canvas.paste(resizeds['1'], (m[0].width + (m[1].width - resizeds['1'].size[0])//2,y_paste))
+  combo_canvas.paste(resizeds['1'], (m[0].width + (m[1].width - resizeds['1'].size[0])//2, y_paste))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
