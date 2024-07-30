@@ -25,6 +25,20 @@ if not os.path.exists('info.txt'):
     file.write(f"initialized {dt}\n\n")
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
+def to_errlog(error_message):
+  logging.error(error_message)
+
+def json_log(pool,url,dup,image):
+  log_entry = {
+    "pool": pool,
+    "url/source": url,
+    "duplicate": dup,
+    "image": image
+  }
+  logging.info(json.dumps(log_entry, indent=2)+"\n")
+
+
+
 def resize(image,mn):
 
   # init dimensions
@@ -53,12 +67,15 @@ def imCombine(images):
 
   for i, (image,mn) in enumerate(pairs):
     resizeds[f"{i}"] = resize(image, mn)
+
     if mn.width > combo_canvas_x:
       combo_canvas_x = mn.width
     if mn.height > combo_canvas_y:
       combo_canvas_y = mn.height
 
-  # abs_threshold = abs((m[0].height - m[1].height))
+  adjust_x1 = (m[0].width - resizeds['0'].size[0])//2
+  adjust_y1 = (m[0].height - resizeds['0'].size[1])//2
+  adjust_x2, adjust_y2 = (m[1].width - resizeds['1'].size[0])//2, (m[1].height - resizeds['1'].size[1])//2
 
   for i, mn in enumerate(m):
     if (mn.x < 0): # (-)x
@@ -97,33 +114,16 @@ def imCombine(images):
         paste_x_im2 = 0
         paste_y_im2 = 0
 
-    # elif (mn.y < 0):
-    #   combo_canvas_y += abs(mn.y)
-    # elif (mn.y > 0):
-    #   if (mn.y + mn.height) > combo_canvas_y:
-    #     combo_canvas_y = mn.y + mn.height
 
   # y_paste = ((m[1].height - resizeds['1'].size[1])//2)+abs(m[0].y)
 # x_centering = m[0].width + (m[1].width - resizeds['1'].size[0])//2
 
   combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
-  combo_canvas.paste(resizeds['0'], (paste_x_im1,paste_y_im1))
-  combo_canvas.paste(resizeds['1'], (paste_x_im2,paste_y_im2))
+  combo_canvas.paste(resizeds['0'], (paste_x_im1 + adjust_x1, paste_y_im1 + adjust_y1))
+  combo_canvas.paste(resizeds['1'], (paste_x_im2 + adjust_x2, paste_y_im2 + adjust_y2))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
-
-def to_errlog(error_message):
-  logging.error(error_message)
-
-def json_log(pool,url,dup,image):
-  log_entry = {
-    "pool": pool,
-    "url/source": url,
-    "duplicate": dup,
-    "image": image
-  }
-  logging.info(json.dumps(log_entry, indent=2)+"\n")
 
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
