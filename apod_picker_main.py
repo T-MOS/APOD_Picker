@@ -77,7 +77,6 @@ def imCombine(images):
     #set the canvas base width/height = to largest w/h found 
     if mn.width > canvas_x:
       canvas_x = mn.width
-      print('canvas x for pairs:', canvas_x)
     if mn.height > canvas_y:
       canvas_y = mn.height
 
@@ -89,33 +88,35 @@ def imCombine(images):
         # add abs val of x-offset to canvas width
         canvas_x = smallest_width + abs(mn.x)
       if mn.y < 0: # (-)x, (-)y
-        canvas_y += abs(mn.y)
+        if (smallest_height + abs(mn.y)) > canvas_y:
+          canvas_y = smallest_height + abs(mn.y)
 
         secondary_x = 0
         secondary_y = 0
         primary_x = abs(mn.x)
         primary_y = abs(mn.y)
       else: # (-)x,(+)y
-        if (mn.y + mn.height) > canvas_y:
-          canvas_y += mn.y
+        if (smallest_height + abs(mn.y)) > canvas_y:
+          canvas_y = smallest_height + abs(mn.y)
 
         secondary_x = 0
         secondary_y = mn.y
         primary_x = abs(mn.x)
         primary_y = 0
     elif (mn.x > 0): # (+)x
-      if (mn.x + mn.width) > canvas_x:
-        canvas_x = mn.x + mn.width
+      if (smallest_width + abs(mn.x))> canvas_x: 
+        canvas_x = smallest_width + abs(mn.x)
       if mn.y < 0: # (+)x, (-)y
-        canvas_y += abs(mn.y)
-
+        if (smallest_height + abs(mn.y)) > canvas_y:
+          canvas_y = smallest_height + abs(mn.y)
+          
         secondary_x = mn.x
         secondary_y = 0
         primary_x = 0
         primary_y = abs(mn.y)
       else: # (+)x, (+)y
-        if (mn.y + mn.height) > canvas_y:
-          canvas_y += mn.y
+        if (smallest_height + abs(mn.y)) > canvas_y:
+          canvas_y = smallest_height + abs(mn.y)
 
         secondary_x = mn.x
         secondary_y = mn.y
