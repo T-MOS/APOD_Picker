@@ -38,7 +38,6 @@ def json_log(pool,url,dup,image):
   logging.info(json.dumps(log_entry, indent=2)+"\n")
 
 
-
 def resize(image,mn):
 
   # init dimensions
@@ -65,6 +64,8 @@ def imCombine(images):
 
   #monitor object order varies; find index of primary disp
   primary_index = next((i for i,mn in enumerate(m) if mn.is_primary), None)
+  #swap to ensure primary is first
+  m[0], m[primary_index] = m[primary_index], m[0]
 
   pairs = list(zip(images,m))
 
@@ -120,8 +121,8 @@ def imCombine(images):
 
 
   combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
-  segundo = combo_canvas.paste(resizeds['0'], (paste_x_im1 + adjust_x1, paste_y_im1 + adjust_y1))
-  primary = combo_canvas.paste(resizeds['1'], (paste_x_im2 + adjust_x2, paste_y_im2 + adjust_y2))
+  primario = combo_canvas.paste(resizeds['0'], (paste_x_im1 + adjust_x1, paste_y_im1 + adjust_y1))
+  segundo = combo_canvas.paste(resizeds['1'], (paste_x_im2 + adjust_x2, paste_y_im2 + adjust_y2))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
