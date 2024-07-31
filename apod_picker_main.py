@@ -87,45 +87,45 @@ def imCombine(images):
       if mn.y < 0: # (-)x, (-)y
         combo_canvas_y += abs(mn.y)
 
-        paste_x_im1 = 0
-        paste_y_im1 = 0
-        paste_x_im2 = abs(mn.x)
-        paste_y_im2 = abs(mn.y)
+        secondary_x = 0
+        secondary_y = 0
+        primary_x = abs(mn.x)
+        primary_y = abs(mn.y)
       else: # (-)x,(+)y
         if (mn.y + mn.height) > combo_canvas_y:
           combo_canvas_y += mn.y
 
-        paste_x_im1 = 0
-        paste_y_im1 = mn.y
-        paste_x_im2 = abs(mn.x)
-        paste_y_im2 = 0
+        secondary_x = 0
+        secondary_y = mn.y
+        primary_x = abs(mn.x)
+        primary_y = 0
     elif (mn.x > 0): # (+)x
       if (mn.x + mn.width) > combo_canvas_x:
         combo_canvas_x = mn.x + mn.width
       if mn.y < 0: # (+)x, (-)y
         combo_canvas_y += abs(mn.y)
 
-        paste_x_im1 = mn.x
-        paste_y_im1 = 0
-        paste_x_im2 = 0
-        paste_y_im2 = abs(mn.y)
+        secondary_x = mn.x
+        secondary_y = 0
+        primary_x = 0
+        primary_y = abs(mn.y)
       else: # (+)x, (+)y
         if (mn.y + mn.height) > combo_canvas_y:
           combo_canvas_y += mn.y
 
-        paste_x_im1 = mn.x
-        paste_y_im1 = mn.y
-        paste_x_im2 = 0
-        paste_y_im2 = 0
-
+        secondary_x = mn.x
+        secondary_y = mn.y
+        primary_x = 0
+        primary_y = 0
 
 
   combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
-  primario = combo_canvas.paste(resizeds['0'], (paste_x_im1 + adjust_x1, paste_y_im1 + adjust_y1))
-  segundo = combo_canvas.paste(resizeds['1'], (paste_x_im2 + adjust_x2, paste_y_im2 + adjust_y2))
+  primario = combo_canvas.paste(resizeds['0'], (primary_x + adjust_x1, primary_y + adjust_y1))
+  segundo = combo_canvas.paste(resizeds['1'], (secondary_x + adjust_x2, secondary_y + adjust_y2))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
+
 
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
