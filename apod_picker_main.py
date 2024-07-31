@@ -63,7 +63,10 @@ def imCombine(images):
   if len(images) != len(m):
     to_errlog(f"{ValueError} -> images:monitors parity ")
 
-  pairs = zip(images,m) # zip strict?
+  #monitor object order varies; find index of primary disp
+  primary_index = next((i for i,mn in enumerate(m) if mn.is_primary), None)
+
+  pairs = list(zip(images,m))
 
   for i, (image,mn) in enumerate(pairs):
     resizeds[f"{i}"] = resize(image, mn)
@@ -115,12 +118,10 @@ def imCombine(images):
         paste_y_im2 = 0
 
 
-  # y_paste = ((m[1].height - resizeds['1'].size[1])//2)+abs(m[0].y)
-# x_centering = m[0].width + (m[1].width - resizeds['1'].size[0])//2
 
   combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
-  combo_canvas.paste(resizeds['0'], (paste_x_im1 + adjust_x1, paste_y_im1 + adjust_y1))
-  combo_canvas.paste(resizeds['1'], (paste_x_im2 + adjust_x2, paste_y_im2 + adjust_y2))
+  segundo = combo_canvas.paste(resizeds['0'], (paste_x_im1 + adjust_x1, paste_y_im1 + adjust_y1))
+  primary = combo_canvas.paste(resizeds['1'], (paste_x_im2 + adjust_x2, paste_y_im2 + adjust_y2))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
