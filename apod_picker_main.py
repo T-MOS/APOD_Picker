@@ -55,8 +55,8 @@ def resize(image,mn):
 
 def imCombine(images):
   resizeds = {}
-  combo_canvas_y = 0
-  combo_canvas_x = 0
+  canvas_y = 0
+  canvas_x = 0
   m = get_monitors()
   
   if len(images) != len(m):
@@ -66,52 +66,56 @@ def imCombine(images):
   primary_index = next((i for i,mn in enumerate(m) if mn.is_primary), None)
   #swap to ensure primary is first
   m[0], m[primary_index] = m[primary_index], m[0]
+  # establish smaller dimension for later canvas sizing
+  smallest_width = min(mn.width for mn in m)
+  smallest_height = min(mn.height for mn in m)
 
   pairs = list(zip(images,m))
 
   for i, (image,mn) in enumerate(pairs):
     resizeds[f"{i}"] = resize(image, mn)
+    #set the canvas base width/height = to largest w/h found 
+    if mn.width > canvas_x:
+      canvas_x = mn.width
+      print('canvas x for pairs:', canvas_x)
+    if mn.height > canvas_y:
+      canvas_y = mn.height
 
-    if mn.width > combo_canvas_x:
-      combo_canvas_x = mn.width
-    if mn.height > combo_canvas_y:
-      combo_canvas_y = mn.height
-
-  adjust_x1 = (m[0].width - resizeds['0'].size[0])//2
-  adjust_y1 = (m[0].height - resizeds['0'].size[1])//2
-  adjust_x2, adjust_y2 = (m[1].width - resizeds['1'].size[0])//2, (m[1].height - resizeds['1'].size[1])//2
-
+  primary_x_adjust, primary_y_adjust = (m[0].width - resizeds['0'].size[0])//2, (m[0].height - resizeds['0'].size[1])//2
+  secondary_x_adjust, secondary_y_adjust = (m[1].width - resizeds['1'].size[0])//2, (m[1].height - resizeds['1'].size[1])//2
   for i, mn in enumerate(m):
     if (mn.x < 0): # (-)x
-      combo_canvas_x += abs(mn.x)
+      if (smallest_width + abs(mn.x))> canvas_x: 
+        # add abs val of x-offset to canvas width
+        canvas_x = smallest_width + abs(mn.x)
       if mn.y < 0: # (-)x, (-)y
-        combo_canvas_y += abs(mn.y)
+        canvas_y += abs(mn.y)
 
         secondary_x = 0
         secondary_y = 0
         primary_x = abs(mn.x)
         primary_y = abs(mn.y)
       else: # (-)x,(+)y
-        if (mn.y + mn.height) > combo_canvas_y:
-          combo_canvas_y += mn.y
+        if (mn.y + mn.height) > canvas_y:
+          canvas_y += mn.y
 
         secondary_x = 0
         secondary_y = mn.y
         primary_x = abs(mn.x)
         primary_y = 0
     elif (mn.x > 0): # (+)x
-      if (mn.x + mn.width) > combo_canvas_x:
-        combo_canvas_x = mn.x + mn.width
+      if (mn.x + mn.width) > canvas_x:
+        canvas_x = mn.x + mn.width
       if mn.y < 0: # (+)x, (-)y
-        combo_canvas_y += abs(mn.y)
+        canvas_y += abs(mn.y)
 
         secondary_x = mn.x
         secondary_y = 0
         primary_x = 0
         primary_y = abs(mn.y)
       else: # (+)x, (+)y
-        if (mn.y + mn.height) > combo_canvas_y:
-          combo_canvas_y += mn.y
+        if (mn.y + mn.height) > canvas_y:
+          canvas_y += mn.y
 
         secondary_x = mn.x
         secondary_y = mn.y
@@ -119,9 +123,9 @@ def imCombine(images):
         primary_y = 0
 
 
-  combo_canvas = Image.new('RGB', (combo_canvas_x,combo_canvas_y))
-  primario = combo_canvas.paste(resizeds['0'], (primary_x + adjust_x1, primary_y + adjust_y1))
-  segundo = combo_canvas.paste(resizeds['1'], (secondary_x + adjust_x2, secondary_y + adjust_y2))
+  combo_canvas = Image.new('RGB', (canvas_x,canvas_y))
+  primario = combo_canvas.paste(resizeds['0'], (primary_x + primary_x_adjust, primary_y + primary_y_adjust))
+  segundo = combo_canvas.paste(resizeds['1'], (secondary_x + secondary_x_adjust, secondary_y + secondary_y_adjust))
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
