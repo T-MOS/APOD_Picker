@@ -67,9 +67,6 @@ def imCombine(images):
   #swap to ensure primary is first
   m[0], m[primary_index] = m[primary_index], m[0]
   
-
-  smallest_height = min(mn.height for mn in m)
-
   pairs = list(zip(images,m))
 
   for i, (image,mn) in enumerate(pairs):
@@ -89,9 +86,9 @@ def imCombine(images):
         # in canvas coordinates, primary is the one translated from origin across x
         canvas_x = m[0].width + abs(mn.x)
       if mn.y < 0: # (-)x, (-)y
-        if (mn[0].height + abs(mn.y)) > canvas_y:
+        if (m[0].height + abs(mn.y)) > canvas_y:
         # add abs val of y-offset to primary height for canvas relative height
-          canvas_y = mn[0].height + abs(mn.y)
+          canvas_y = m[0].height + abs(mn.y)
 
         secondary_x = 0
         secondary_y = 0
@@ -110,9 +107,9 @@ def imCombine(images):
       if (m[1].width + abs(mn.x)) > canvas_x: 
         canvas_x = m[1].width + abs(mn.x)
       if mn.y < 0: # (+)x, (-)y
-        if (mn[0].height + abs(mn.y)) > canvas_y:
+        if (m[0].height + abs(mn.y)) > canvas_y:
         # add abs val of y-offset to primary height for canvas relative height
-          canvas_y = mn[0].height + abs(mn.y)
+          canvas_y = m[0].height + abs(mn.y)
           
         secondary_x = mn.x
         secondary_y = 0
