@@ -66,8 +66,8 @@ def imCombine(images):
   primary_index = next((i for i,mn in enumerate(m) if mn.is_primary), None)
   #swap to ensure primary is first
   m[0], m[primary_index] = m[primary_index], m[0]
-  # establish smaller dimension for later canvas sizing
-  smallest_width = min(mn.width for mn in m)
+  
+
   smallest_height = min(mn.height for mn in m)
 
   pairs = list(zip(images,m))
@@ -84,39 +84,43 @@ def imCombine(images):
   secondary_x_adjust, secondary_y_adjust = (m[1].width - resizeds['1'].size[0])//2, (m[1].height - resizeds['1'].size[1])//2
   for i, mn in enumerate(m):
     if (mn.x < 0): # (-)x
-      if (smallest_width + abs(mn.x))> canvas_x: 
-        # add abs val of x-offset to canvas width
-        canvas_x = smallest_width + abs(mn.x)
+      if (m[0].width + abs(mn.x))> canvas_x: 
+        # add abs val of x-offset to primary display's width for new canvas width since,
+        # in canvas coordinates, primary is the one translated from origin across x
+        canvas_x = m[0].width + abs(mn.x)
       if mn.y < 0: # (-)x, (-)y
-        if (smallest_height + abs(mn.y)) > canvas_y:
-          canvas_y = smallest_height + abs(mn.y)
+        if (mn[0].height + abs(mn.y)) > canvas_y:
+        # add abs val of y-offset to primary height for canvas relative height
+          canvas_y = mn[0].height + abs(mn.y)
 
         secondary_x = 0
         secondary_y = 0
         primary_x = abs(mn.x)
         primary_y = abs(mn.y)
       else: # (-)x,(+)y
-        if (smallest_height + abs(mn.y)) > canvas_y:
-          canvas_y = smallest_height + abs(mn.y)
+        if (m[1].height + mn.y) > canvas_y:
+          canvas_y = m[1].height + mn.y
 
         secondary_x = 0
         secondary_y = mn.y
         primary_x = abs(mn.x)
         primary_y = 0
     elif (mn.x > 0): # (+)x
-      if (smallest_width + abs(mn.x))> canvas_x: 
-        canvas_x = smallest_width + abs(mn.x)
+      # inverse of behavior from (-)x; nonprimary == translated
+      if (m[1].width + abs(mn.x)) > canvas_x: 
+        canvas_x = m[1].width + abs(mn.x)
       if mn.y < 0: # (+)x, (-)y
-        if (smallest_height + abs(mn.y)) > canvas_y:
-          canvas_y = smallest_height + abs(mn.y)
+        if (mn[0].height + abs(mn.y)) > canvas_y:
+        # add abs val of y-offset to primary height for canvas relative height
+          canvas_y = mn[0].height + abs(mn.y)
           
         secondary_x = mn.x
         secondary_y = 0
         primary_x = 0
         primary_y = abs(mn.y)
       else: # (+)x, (+)y
-        if (smallest_height + abs(mn.y)) > canvas_y:
-          canvas_y = smallest_height + abs(mn.y)
+        if (m[1].height + mn.y) > canvas_y:
+          canvas_y = m[1].height + mn.y
 
         secondary_x = mn.x
         secondary_y = mn.y
@@ -130,7 +134,7 @@ def imCombine(images):
   combo_canvas.show()
 
 images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
-
+imCombine(images)
 
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
