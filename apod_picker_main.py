@@ -37,28 +37,29 @@ def json_log(pool,url,dup,image):
   }
   logging.info(json.dumps(log_entry, indent=2)+"\n")
 
-
 def resize(image,mn):
 
   # init dimensions
-  image = Image.open(image)
-  iw, ih = image.size
+  if isinstance(image, Image.Image):
+    img = image
+  else:
+    img = Image.open(image)
+  iw, ih = img.size
   mw, mh = mn.width, mn.height
   wscale = iw/mw
   hscale = ih/mh
 
   #scale by relatively larger dim to constrain in disp.
   newiw, newih = int(iw/max(hscale,wscale)), int(ih/max(hscale,wscale))
-  resized_image = image.resize((newiw,newih),Image.Resampling.LANCZOS)
+  resized_image = img.resize((newiw,newih),Image.Resampling.LANCZOS)
 
   return resized_image
 
-def imCombine(images):
+def img_combine(images, m):
   resizeds = {}
   canvas_y = 0
   canvas_x = 0
-  m = get_monitors()
-  
+
   if len(images) != len(m):
     to_errlog(f"{ValueError} -> images:monitors parity ")
 
@@ -124,11 +125,13 @@ def imCombine(images):
         primary_x = 0
         primary_y = 0
 
-
   combo_canvas = Image.new('RGB', (canvas_x,canvas_y))
   primario = combo_canvas.paste(resizeds['0'], (primary_x + primary_x_adjust, primary_y + primary_y_adjust))
   segundo = combo_canvas.paste(resizeds['1'], (secondary_x + secondary_x_adjust, secondary_y + secondary_y_adjust))
-  combo_canvas.show()
+
+  
+  return combo_canvas
+
 
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
@@ -229,6 +232,13 @@ def fetch_apod_data(use_random=False,max=2):
     except requests.RequestException as e:
       to_errlog(f"Failed to fetch APOD data: {e}\n")
   return None, None
+
+def fetch_fave(configObj):
+  shuffaves = configObj['faves']
+  random.shuffle(shuffaves)
+  image_path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
+  json_log("faves", "...\\faves...", "", shuffaves[0])
+  return image_path
 
 def simple_formatter(text):
     if text:
@@ -480,11 +490,12 @@ def main():
   default_dir_initializer()
   configObj = faves_updater()
   pool = image_pool_selector(configObj)
-  Image.MAX_IMAGE_PIXELS = 136037232 #adjust decompression bomb warning threshold to largest APOD image yet
+  multi_monitor = get_monitors()
+  Image.MAX_IMAGE_PIXELS = 136037232 #adjust decompression bomb warning threshold to largest APOD image
+
 
   if pool == "fetch":
-    img_url, description = None, None
-    image = None
+    img_url, image, description = None, None, None
     while (not img_url or not image):
       daily = date_comparator(configObj)
       img_url, description = fetch_apod_data(daily)
@@ -497,29 +508,50 @@ def main():
           to_errlog(f"{e}\n")
 
     dup_check = duplicate_paths(img_url, configObj)
-    # dup_check returns: None,filename (no paths), True/path (found dup), False/filename (no match)
+    # dup_check returns: None,filename (no paths), False/filename (no match), True/path (found dup)
+
     if True in dup_check:
-      set_desktop_background(dup_check[1])
-      json_log(pool,img_url, "Duplicate found", dup_check[1])
+      if len(multi_monitor) == 2:
+        images = [dup_check[1],fetch_fave(configObj)]
+        "fetched duplicate -> fave/fave"
+        setter_no_save(img_combine(images, multi_monitor))
+
+        json_log("fetched duplicate -> fave/fave", img_url, "Duplicate found", images)
+      else:
+        set_desktop_background(dup_check[1])
+        json_log(pool,img_url, "Duplicate found", dup_check[1])
     else:
       if configObj['keep'] > 0: # SAVE -> set
         image_path = select_save_path(image, dup_check[1])
         logging.debug(f"Image saved to path: {image_path}")
         if image_path:
-          set_desktop_background(image_path)
-          logging.debug("New Desktop background FETCHED/set")
-          json_log(pool,img_url, "Original; saving", image_path)
+          if len(multi_monitor) == 2:
+            images = [image_path, fetch_fave(configObj)]
+            setter_no_save(img_combine(images, multi_monitor))
+
+            json_log("fetch/fave", img_url, "None/False", images)
+          else:
+            set_desktop_background(image_path)
+
+            json_log(pool, img_url, "Original; saving", image_path)
       else:
-        setter_no_save(image)
-        json_log(pool,img_url, "Original; temporary", image)
+        if len(multi_monitor) == 2:
+          images = [image,fetch_fave(configObj)]
+          setter_no_save(img_combine(images,multi_monitor))
+          json_log("fetch/fave", img_url, "Original; temporary", images)
+        else:
+          setter_no_save(image)
+          json_log(pool, img_url, "Original; temporary", image)
 
   else: # from... pool = "faves"
-    shuffaves = configObj['faves']
-    random.shuffle(shuffaves)
-    image_path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
-    set_desktop_background(image_path)
-    logging.debug(f"OLD Desktop background FAVES -> set {image_path}")
-    json_log(pool, "...\\faves...", "", shuffaves[0])
+    if len(multi_monitor) == 2:
+      images = [fetch_fave(configObj),fetch_fave(configObj)]
+      setter_no_save(img_combine(images, multi_monitor))
+      json_log("fave/fave", images, "n/a; faves pool preselect", images)
+    else:
+      fave_img = fetch_fave(configObj)
+      setter_no_save(fave_img)
+      json_log(pool, images, "n/a; faves pool preselect", fave_img)
 
 if __name__=="__main__":
   main()
