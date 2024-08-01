@@ -130,9 +130,6 @@ def imCombine(images):
   segundo = combo_canvas.paste(resizeds['1'], (secondary_x + secondary_x_adjust, secondary_y + secondary_y_adjust))
   combo_canvas.show()
 
-images = ["saves\\LenticularConjunction_serrao_3000.jpg","saves\\NGC6946_verB.jpg"]
-imCombine(images)
-
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
     app_path = os.path.dirname(sys.executable)
