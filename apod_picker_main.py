@@ -15,13 +15,20 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
 
-logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+def get_base_path():
+  if getattr(sys,'frozen',False): # executable
+    app_path = os.path.dirname(sys.executable)
+  else: # script
+    app_path = os.path.dirname(os.path.abspath(__file__))
 
+  return app_path
 #check for &/or init attempts log
 if not os.path.exists('info.txt'):
   with open('info.txt','a') as file:
     dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
     file.write(f"initialized {dt}\n\n")
+
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def to_errlog(error_message):
@@ -37,7 +44,6 @@ def json_log(pool,url,dup,image):
   logging.info(json.dumps(log_entry, indent=2)+"\n")
 
 def resize(image,mn):
-
   # init dimensions
   if isinstance(image, Image.Image):
     img = image
@@ -128,17 +134,7 @@ def img_combine(images, m):
   primario = combo_canvas.paste(resizeds['0'], (primary_x + primary_x_adjust, primary_y + primary_y_adjust))
   segundo = combo_canvas.paste(resizeds['1'], (secondary_x + secondary_x_adjust, secondary_y + secondary_y_adjust))
 
-  
   return combo_canvas
-
-
-def get_base_path():
-  if getattr(sys,'frozen',False): # executable
-    app_path = os.path.dirname(sys.executable)
-  else: # script
-    app_path = os.path.dirname(os.path.abspath(__file__))
-
-  return app_path
 
 def default_dir_initializer():
   configObj = open_config()
@@ -490,7 +486,6 @@ def main():
   pool = image_pool_selector(configObj)
   multi_monitor = get_monitors()
   Image.MAX_IMAGE_PIXELS = 136037232 #adjust decompression bomb warning threshold to largest APOD image
-
 
   if pool == "fetch":
     img_url, image, description = None, None, None
