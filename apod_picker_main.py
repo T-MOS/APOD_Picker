@@ -1,5 +1,4 @@
 import ctypes
-from ctypes import wintypes
 import os
 import sys
 import platform
@@ -453,7 +452,7 @@ def qa(image):
       else: # constant cap
         if wim > 2640:
           return image
-    elif (wim >= w or him >= h) and wim/him > .98: # relatively high resolution but possibly sq.
+    elif (wim >= w or him >= h) and wim/him >= 1: # relatively high resolution but possibly sq.
       return image
     else:      
       return None
