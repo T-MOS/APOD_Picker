@@ -432,7 +432,6 @@ def get_resolution():
     if scale > 100: # Check if layout scale is greater than 100%
       factor = (scale/100) - 1
       w, h = w+w*factor, h+h*factor
-    print(w,h)
     return w, h
 
 def qa(image):
@@ -541,7 +540,7 @@ def main():
           json_log("fetch/fave", img_url, "Original; temporary", images)
         else:
           setter_no_save(image)
-          json_log(pool, img_url, "Original; temporary", image)
+          json_log(pool, img_url, "Original; temporary", dup_check[1])
 
   else: # from... pool = "faves"
     if len(multi_monitor) == 2:
@@ -550,8 +549,8 @@ def main():
       json_log("fave/fave", images, "n/a; faves pool preselect", images)
     else:
       fave_img = fetch_fave(configObj)
-      setter_no_save(fave_img)
-      json_log(pool, images, "n/a; faves pool preselect", fave_img)
+      set_desktop_background(fave_img)
+      json_log(pool, fave_img, "n/a; faves pool preselect", fave_img)
 
 if __name__=="__main__":
   main()
