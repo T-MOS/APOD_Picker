@@ -575,7 +575,7 @@ def main():
     if len(multi_monitor) == 2:
       images = [fetch_fave(configObj),fetch_fave(configObj)]
       setter_no_save(img_combine(images, multi_monitor))
-      json_log("fave/fave", images, "n/a; faves pool preselect", images)
+      json_log("fave/fave", "n/a", "n/a; faves pool preselect", images)
     else:
       fave_img = fetch_fave(configObj)
       set_desktop_background(fave_img)
