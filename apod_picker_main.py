@@ -483,7 +483,7 @@ def date_comparator(configObj):
 def fetch_segundo(): # "quick" run a random fetch_apod for use in second monitor if no favorites exist
   fetch, image = None, None 
   while (not fetch or not image):
-    fetch = fetch_apod_data()
+    fetch = fetch_apod_data(True)
     if fetch[0]: # if img_url
       image_response = requests.get(fetch[0])
       image_response.raise_for_status()
