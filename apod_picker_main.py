@@ -289,8 +289,9 @@ def open_config():
     logging.warning("config.json not found or invalid, making a default configuration")
     to_errlog(f"{e}\n")
   finally:
-    if not os.path.exists("config.json"):
-      with open('config.json','w'):
+    config_file = os.path.join(get_base_path(), "config.json")
+    if not os.path.exists(config_file):
+      with open(config_file,'w'):
         configObj = {
           "base path": "",
           "keep": 4,

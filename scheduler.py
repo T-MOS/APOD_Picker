@@ -19,8 +19,9 @@ def create_task(task_action, task_name="APOD"):
   except subprocess.CalledProcessError as e:
     print(f"FAILED to create APOD task: {e}")
 
-start_in = os.path.abspath("dist")
+
 task_action = os.path.abspath("Astronomy Picture of the Day.exe")
+
 if task_exists():
   print("APOD task found")
 else:
