@@ -482,7 +482,7 @@ def date_comparator(configObj):
 
 def fetch_segundo(): # "quick" run a random fetch_apod for use in second monitor if no favorites exist
   fetch, image = None, None 
-  while (not fetch or image):
+  while (not fetch or not image):
     fetch = fetch_apod_data()
     if fetch[0]: # if img_url
       image_response = requests.get(fetch[0])
@@ -491,7 +491,8 @@ def fetch_segundo(): # "quick" run a random fetch_apod for use in second monitor
         image = qa(Image.open(BytesIO(image_response.content))) # returns None if image fails QA
       except Exception as e:
         to_errlog(f"{e}\n")
-  return image
+    segundo_nombre = sanitize_filename(fetch[0]).group(1)
+  return image, segundo_nombre
 
 def main():
   default_dir_initializer()
@@ -520,12 +521,15 @@ def main():
       if len(multi_monitor) == 2:
         if len(configObj['faves']) > 0:
           images = [dup_check[1], fetch_fave(configObj)]
+          log_images = images
           pool = "fetched duplicate -> save-fave/fave"
         else:
-          images = [dup_check[1],fetch_segundo()]
+          fs = fetch_segundo()
+          images = [dup_check[1],fs[0]]
+          log_images = [dup_check[1], fs[1]]
           pool = "fetched duplicate, no faves -> saves/fetch"
         setter_no_save(img_combine(images, multi_monitor))
-        json_log(pool, img_url, "Duplicate found", images)
+        json_log(pool, img_url, "Duplicate found", log_images)
       else:
         set_desktop_background(dup_check[1])
         json_log(pool,img_url, "Duplicate found", dup_check[1])
@@ -537,12 +541,15 @@ def main():
           if len(multi_monitor) == 2:
             if len(configObj['faves']) > 0:
               images = [image_path, fetch_fave(configObj)]
+              log_images = images
               pool = "fetch/fave"
             else:
-              images = [image_path, fetch_segundo()]
+              fs = fetch_segundo()
+              images = [image_path, fs[0]]
+              log_images = [image_path, fs[1]]
               pool = "No faves -> fetch/fetch"
             setter_no_save(img_combine(images, multi_monitor))
-            json_log(pool, img_url, "None/False", images)
+            json_log(pool, img_url, "None/False", log_images)
           else:
             set_desktop_background(image_path)
             json_log(pool, img_url, "Original; saving", image_path)
@@ -550,12 +557,15 @@ def main():
         if len(multi_monitor) == 2:
           if len(configObj['faves']) > 0:
             images = [image, fetch_fave(configObj)]
+            log_images = images
             pool = "fetch/fave"
           else:
-            images = [image, fetch_segundo()]
+            fs = fetch_segundo()
+            images = [image, fs[0]]
+            log_images = [image, fs[1]]
             pool = "fetch/fetch"
           setter_no_save(img_combine(images,multi_monitor))
-          json_log(pool, img_url, "Original; temporary", images)
+          json_log(pool, img_url, "Original; temporary", log_images)
         else:
           setter_no_save(image)
           json_log(pool, img_url, "Original; temporary", dup_check[1])
