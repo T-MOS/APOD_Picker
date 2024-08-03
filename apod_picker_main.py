@@ -24,12 +24,13 @@ def get_base_path():
   return app_path
 
 #check for &/or init attempts log
-if not os.path.exists('info.txt'):
-  with open('info.txt','a') as file:
+info = os.path.join(get_base_path(),'info.txt')
+if not os.path.exists(info):
+  with open(info,'a') as file:
     dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
     file.write(f"initialized {dt}\n\n")
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.basicConfig(filename='info.txt', level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+logging.basicConfig(filename=info, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def to_errlog(error_message):
   logging.error(error_message)
