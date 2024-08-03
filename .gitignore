@@ -10,3 +10,4 @@ info.txt
 /build
 /dist
 apod_picker_main.spec
+/__pycache__
