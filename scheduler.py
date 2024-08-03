@@ -11,7 +11,15 @@ def task_exists(task_name="APOD"):
     to_errlog(f"task_exists error: {e}")
     return False
 
+def create_task(task_name="APOD", task_action, task_trigger):
+  try:
+    subprocess.run(['schtasks', '/Create', '/TN', task_name, '/TR', task_action, '/SC', "DAILY", 'RI', 1], check=True)
+    print("APOD task CREATED")
+  except subprocess.CalledProcessError as e:
+    print(f"FAILED to create APOD task: {e}")
+
 if task_exists():
   print("APOD task found")
 else:
+  create_task()
   print("no task")
