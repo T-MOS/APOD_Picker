@@ -271,7 +271,7 @@ def update_saves(saved):
   if len(saves) >= keep:
     while len(saves) > keep:
       oldest = configObj['saves'][-1]
-      oldest_path = os.path.join(configObj['base path'],oldest)
+      oldest_path = os.path.join(configObj['base path'], oldest)
       if os.path.exists(oldest_path):
         os.remove(oldest_path)
         saves.pop(-1)
