@@ -8,6 +8,7 @@ import random
 import requests
 import logging
 import tempfile
+import scheduler
 from screeninfo import get_monitors
 from tkinter import Tk
 from datetime import datetime
@@ -15,16 +16,23 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
 
+def scheduling(task_action):
+  if scheduler.task_exists():
+    return
+  else:
+    scheduler.create_task(task_action)
+
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
     app_path = os.path.dirname(sys.executable)
+    task_action = os.path.join(app_path, sys.executable)
   else: # script
     app_path = os.path.dirname(os.path.abspath(__file__))
-
-  return app_path
+    task_action = os.path.join(app_path,__file__) 
+  return app_path, task_action
 
 #check for &/or init attempts log
-info = os.path.join(get_base_path(),'info.txt')
+info = os.path.join(get_base_path()[0],'info.txt')
 if not os.path.exists(info):
   with open(info,'a') as file:
     dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
@@ -139,7 +147,7 @@ def img_combine(images, m):
 
 def default_dir_initializer():
   configObj = open_config()
-  base_dir = get_base_path()
+  base_dir = get_base_path()[0]
   default_relative_path = os.path.join(base_dir, 'saves')
   
   # makes the main saves dir while making the faves subdir 
@@ -289,7 +297,7 @@ def open_config():
     logging.warning("config.json not found or invalid, making a default configuration")
     to_errlog(f"{e}\n")
   finally:
-    config_file = os.path.join(get_base_path(), "config.json")
+    config_file = os.path.join(get_base_path()[0], "config.json")
     if not os.path.exists(config_file):
       with open(config_file,'w'):
         configObj = {
@@ -498,6 +506,7 @@ def fetch_segundo(): # "quick" run a random fetch_apod for use in second monitor
 
 def main():
   default_dir_initializer()
+  scheduling(get_base_path()[1])
   configObj = faves_updater()
   pool = image_pool_selector(configObj)
   multi_monitor = get_monitors()
