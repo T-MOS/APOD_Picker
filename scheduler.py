@@ -1,6 +1,5 @@
 import subprocess
-import os
-from apod_picker_main import to_errlog, get_base_path
+# from apod_picker_main import to_errlog
 
 def task_exists(task_name="APOD"):
   try: 
@@ -9,26 +8,14 @@ def task_exists(task_name="APOD"):
       return False
     return True
   except Exception as e:
-    to_errlog(f"task_exists error: {e}")
+    # to_errlog(f"task_exists error: {e}")
     return False
 
 def create_task(task_action, task_name="APOD"):
   try:
-    subprocess.run(['schtasks', '/Create', '/TN', task_name, '/TR', f"'{task_action}'", '/SC', 'DAILY'], check=True)
+    subprocess.run(['schtasks', '/Create', '/TN', task_name, '/TR', f'"{task_action}"', '/SC', 'DAILY'], check=True)
     print("APOD task CREATED")
   except subprocess.CalledProcessError as e:
     print(f"FAILED to create APOD task: {e}")
 
-
-task_action = os.path.abspath("apod_picker_main.exe")
-
-if task_exists():
-  print("APOD task found")
-else:
-  create_task(task_action)
-  task_exists
-  if task_exists():
-    print('success creating task')
-  else:
-    print("task make = fail")
     
