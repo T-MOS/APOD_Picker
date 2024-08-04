@@ -14,7 +14,7 @@ def task_exists(task_name="APOD"):
 
 def create_task(task_action, task_name="APOD"):
   try:
-    subprocess.run(['schtasks', '/Create', '/TN', task_name, '/TR', task_action, '/SC', 'DAILY', '/RI', '1'], check=True)
+    subprocess.run(['schtasks', '/Create', '/TN', task_name, '/TR', task_action, '/SC', 'DAILY'], check=True)
     print("APOD task CREATED")
   except subprocess.CalledProcessError as e:
     print(f"FAILED to create APOD task: {e}")
