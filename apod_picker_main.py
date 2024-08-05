@@ -17,12 +17,7 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
 
-def scheduling(task_action):
-  if scheduler.task_exists():
-    return
-  else:
-    scheduler.create_task(task_action)
-
+# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
     app_path = os.path.dirname(sys.executable)
@@ -33,13 +28,21 @@ def get_base_path():
   return app_path, task_action
 
 #check for &/or init attempts log
-info = os.path.join(get_base_path()[0],'info.txt')
-if not os.path.exists(info):
-  with open(info,'a') as file:
-    dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
-    file.write(f"initialized {dt}\n\n")
-# logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
-logging.basicConfig(filename=info, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+def init_log():
+  info = os.path.join(get_base_path()[0],'info.txt')
+  if not os.path.exists(info):
+    with open(info,'a') as file:
+      dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
+      file.write(f"initialized {dt}\n\n")
+  return info 
+
+logging.basicConfig(filename=init_log(), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def scheduling(task_action):
+  if scheduler.task_exists():
+    return
+  else:
+    scheduler.create_task(task_action)
 
 def resize(image,mn):
   # init dimensions
@@ -230,7 +233,6 @@ def fetch_fave(configObj):
   shuffaves = configObj['faves']
   random.shuffle(shuffaves)
   image_path = os.path.join(os.path.join(configObj['base path'],'faves'),shuffaves[0])
-  json_log("faves", "...\\faves...", "", shuffaves[0])
   return image_path
 
 def simple_formatter(text):
