@@ -11,12 +11,11 @@ For my testers:
 `python -m venv .`
 Mac:
 `source bin/activate`
-
 Windows:
 `source \Scripts\Activate.ps1`
-
 Both: `pip install -r requirements.txt`
 run via: `python apod_picker_main.py`
+
 ## Usage
 
 To run the script, simply navigate to the directory containing the script and run the command `python apod_picker.py`.
@@ -26,3 +25,5 @@ The script will fetch the APOD and display it in a new window. It will also disp
 ## Platform Specifics
 
 This script is designed to work on Windows, Linux, and macOS.
+
+Task Scheduler (windows) and Cron Job (Mac) automation is implemented for the APOD picker executable 
