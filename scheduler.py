@@ -1,6 +1,7 @@
 import subprocess
 import log
 
+# Windows: scheduler
 def task_exists(task_name="APOD"):
   try: 
     result = subprocess.run(['schtasks', '/Query', '/TN', task_name], capture_output=True, text=True)
@@ -17,3 +18,25 @@ def create_task(task_action, task_name="APOD"):
     print("APOD task CREATED")
   except subprocess.CalledProcessError as e:
     print(f"FAILED to create APOD task: {e}")
+
+# Mac: cron
+def cron_job(exe_path):
+  import os
+  #passthrough script v1
+  script = f"""
+      do shell script "
+      cron_job_exists=$(crontab -l | grep -c 'APOD')
+      if [$cron_job_exists -eq 0]; then
+        (crontab -l 2>/dev/null; echo '0 12 * * * {exe_path} # APOD')
+      fi
+      "
+      """
+  os.system(f"/usr/bin/osascript -e '{script}'")
+  # passthrough script v2
+  # script = f"""
+  #     cron_job_exists=$(crontab -l | grep -c 'APOD')
+  #     if [$cron_job_exists -eq 0]; then
+  #       (crontab -l 2>/dev/null; echo '0 12 * * * {exe_path} # APOD')
+  #     fi
+  #     """
+  # os.system(f"/usr/bin/osascript -e '{script}'")

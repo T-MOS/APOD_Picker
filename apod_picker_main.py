@@ -39,10 +39,13 @@ def init_log():
 logging.basicConfig(filename=init_log(), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def scheduling(task_action):
-  if scheduler.task_exists():
-    return
-  else:
-    scheduler.create_task(task_action)
+  try:
+    if scheduler.task_exists():
+      return
+    else:
+      scheduler.create_task(task_action)
+  except Exception as e:
+    to_errlog(f"Task scheduler (win) error:{e}")
 
 def resize(image,mn):
   # init dimensions
@@ -408,7 +411,7 @@ def set_desktop_background(image_path):
     to_errlog("Error", f"Failed to set the desktop background: {e}")
     return False
 
-def get_resolution():
+def get_resolution(): # single display only
   if platform.system() == ('Darwin' or 'Linux'):
     root = Tk()
     w, h = root.winfo_screenwidth(), root.winfo_screenheight()
@@ -492,8 +495,12 @@ def fetch_segundo(): # "quick" run a random fetch_apod for use in second monitor
   return image, segundo_nombre
 
 def main():
-  default_dir_initializer()
-  scheduling(get_base_path()[1])
+  if platform.system() == "Windows":
+    scheduling(get_base_path()[1])
+  elif platform.system() == "Darwin":
+    scheduler.cron_job(get_base_path()[1])
+  
+  default_dir_initializer()    
   configObj = faves_updater()
   pool = image_pool_selector(configObj)
   multi_monitor = get_monitors()
