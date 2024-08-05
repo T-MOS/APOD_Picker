@@ -1,5 +1,5 @@
 import subprocess
-# from apod_picker_main import to_errlog
+import log
 
 def task_exists(task_name="APOD"):
   try: 
@@ -8,7 +8,7 @@ def task_exists(task_name="APOD"):
       return False
     return True
   except Exception as e:
-    # to_errlog(f"task_exists error: {e}")
+    log.to_errlog(f"task_exists error: {e}")
     return False
 
 def create_task(task_action, task_name="APOD"):
@@ -17,5 +17,3 @@ def create_task(task_action, task_name="APOD"):
     print("APOD task CREATED")
   except subprocess.CalledProcessError as e:
     print(f"FAILED to create APOD task: {e}")
-
-    

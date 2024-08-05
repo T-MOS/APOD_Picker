@@ -9,6 +9,7 @@ import requests
 import logging
 import tempfile
 import scheduler
+from log import to_errlog, json_log
 from screeninfo import get_monitors
 from tkinter import Tk
 from datetime import datetime
@@ -39,18 +40,6 @@ if not os.path.exists(info):
     file.write(f"initialized {dt}\n\n")
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
 logging.basicConfig(filename=info, level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
-
-def to_errlog(error_message):
-  logging.error(error_message)
-
-def json_log(pool,url,dup,image):
-  log_entry = {
-    "pool": pool,
-    "url/source": url,
-    "duplicate": dup,
-    "image": image
-  }
-  logging.info(json.dumps(log_entry, indent=2)+"\n")
 
 def resize(image,mn):
   # init dimensions
@@ -219,7 +208,7 @@ def fetch_apod_data(use_random=False,max=2):
       else:
         response = requests.get(baseUrl)
       if response.status_code != 200:
-        logging.info(f"{response.status_code}\n URL...{response.url}")
+        to_errlog(f"{response.status_code}\n URL...{response.url}")
         tries+=1
         continue
       soup = BeautifulSoup(response.content, 'html.parser', from_encoding='utf-8')
@@ -294,7 +283,6 @@ def open_config():
     with open('config.json', 'r') as f:
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError) as e:
-    logging.warning("config.json not found or invalid, making a default configuration")
     to_errlog(f"{e}\n")
   finally:
     config_file = os.path.join(get_base_path()[0], "config.json")
@@ -361,10 +349,7 @@ def duplicate_paths(url, configs):
 
   if len(files) > 0:
     for file in files:
-      if clean_filename not in file:
-        logging.debug(f"Sanitized filename: {clean_filename}")
-      else:
-        logging.debug(f"dup found @ {file}")
+      if clean_filename in file:
         return True, file #path of existing image
     return False, clean_filename # pass to select_save()
   else:
@@ -418,7 +403,7 @@ def set_desktop_background(image_path):
       os.system(f"/usr/bin/osascript -e '{script}'")
     return True
   except Exception as e:
-    logging.error("Error", f"Failed to set the desktop background: {e}")
+    to_errlog("Error", f"Failed to set the desktop background: {e}")
     return False
 
 def get_resolution():
