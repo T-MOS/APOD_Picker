@@ -21,22 +21,22 @@ def create_task(task_action, task_name="APOD"):
 
 # Mac: cron
 def cron_job(exe_path):
-  import os
+  from os import system
   #passthrough script v1
   script = f"""
       do shell script "
-      cron_job_exists=$(crontab -l | grep -c 'APOD')
+      cron_job_exists=$(crontab -l 2>/dev/null| grep -c 'APOD')
       if [$cron_job_exists -eq 0]; then
-        (crontab -l 2>/dev/null; echo '0 12 * * * {exe_path} # APOD')
+        (crontab -l 2>/dev/null; echo '0 10,20 * * * {exe_path} # APOD')
       fi
       "
       """
-  os.system(f"/usr/bin/osascript -e '{script}'")
+  system(f"/usr/bin/osascript -e '{script}'")
   # passthrough script v2
   # script = f"""
-  #     cron_job_exists=$(crontab -l | grep -c 'APOD')
+  #     cron_job_exists=$(crontab -l 2>/dev/null| grep -c 'APOD')
   #     if [$cron_job_exists -eq 0]; then
   #       (crontab -l 2>/dev/null; echo '0 12 * * * {exe_path} # APOD')
   #     fi
   #     """
-  # os.system(f"/usr/bin/osascript -e '{script}'")
+  # 0system(f"/usr/bin/osascript -e '{script}'")
