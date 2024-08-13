@@ -27,16 +27,27 @@ def get_base_path():
     task_action = os.path.join(app_path,__file__) 
   return app_path, task_action
 
+def default_dir_initializer():
+  base_dir = get_base_path()[0]
+  default_relative_path = os.path.join(base_dir, 'APOD Saves')
+
+  # makes the main saves dir while making the faves subdir 
+  make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
+  
+  configObj = open_config()
+  configObj['base path'] = default_relative_path
+  dump2json(configObj)
+  return default_relative_path
+
 #check for &/or init attempts log
-def init_log():
-  info = os.path.join(get_base_path()[0],'info.txt')
+def init_all():
+  default_dir_initializer()
+  info = os.path.join(get_base_path()[0],os.path.join('APOD Saves', 'info.txt'))
   if not os.path.exists(info):
     with open(info,'a') as file:
       dt=datetime.now().strftime("%Y-%m-%d %H:%M,%S")
       file.write(f"initialized {dt}\n\n")
   return info 
-
-logging.basicConfig(filename=init_log(), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
 
 def scheduling(task_action):
   try:
@@ -137,19 +148,8 @@ def img_combine(images, m):
   combo_canvas = Image.new('RGB', (canvas_x,canvas_y))
   primario = combo_canvas.paste(resizeds['0'], (primary_x + primary_x_adjust, primary_y + primary_y_adjust))
   segundo = combo_canvas.paste(resizeds['1'], (secondary_x + secondary_x_adjust, secondary_y + secondary_y_adjust))
-
-  return combo_canvas
-
-def default_dir_initializer():
-  configObj = open_config()
-  base_dir = get_base_path()[0]
-  default_relative_path = os.path.join(base_dir, 'saves')
   
-  # makes the main saves dir while making the faves subdir 
-  make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
-  configObj['base path'] = default_relative_path
-  dump2json(configObj)
-  return default_relative_path
+  return combo_canvas
 
 def image_pool_selector(config):
   faves = config['faves']
@@ -284,13 +284,14 @@ def update_saves(saved):
   dump2json(configObj)
 
 def open_config():
+  config_file = os.path.join(get_base_path()[0], os.path.join("APOD saves","config.json"))
   try:
-    with open('config.json', 'r') as f:
+    with open(config_file, 'r') as f:
       configObj = json.load(f)
   except(FileNotFoundError, json.JSONDecodeError) as e:
     to_errlog(f"{e}\n")
   finally:
-    config_file = os.path.join(get_base_path()[0], "config.json")
+    # config_file = os.path.join(get_base_path()[0], os.path.join("APOD saves","config.json"))
     if not os.path.exists(config_file):
       with open(config_file,'w'):
         configObj = {
@@ -304,7 +305,7 @@ def open_config():
 
 def dump2json(config):
   try:
-    with open('config.json', 'w') as out:
+    with open(os.path.join("APOD saves",'config.json'), 'w') as out:
       json.dump(config, out, indent=2)
   except Exception as e:
     to_errlog(f"JSON error: {e}\n")
@@ -495,12 +496,13 @@ def fetch_segundo(): # "quick" run a random fetch_apod for use in second monitor
   return image, segundo_nombre
 
 def main():
+  logging.basicConfig(filename=init_all(), level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
   if platform.system() == "Windows":
     scheduling(get_base_path()[1])
   elif platform.system() == "Darwin":
     scheduler.cron_job(get_base_path()[1])
-  
-  default_dir_initializer()    
+
   configObj = faves_updater()
   pool = image_pool_selector(configObj)
   multi_monitor = get_monitors()
