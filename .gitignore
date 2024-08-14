@@ -9,5 +9,5 @@ exiftool.exe
 info.txt
 /build
 /dist
-apod_picker_main.spec
+APOD Picker.spec
 /__pycache__
