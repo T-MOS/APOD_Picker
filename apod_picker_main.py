@@ -291,7 +291,6 @@ def open_config():
   except(FileNotFoundError, json.JSONDecodeError) as e:
     to_errlog(f"{e}\n")
   finally:
-    # config_file = os.path.join(get_base_path()[0], os.path.join("APOD saves","config.json"))
     if not os.path.exists(config_file):
       with open(config_file,'w'):
         configObj = {
