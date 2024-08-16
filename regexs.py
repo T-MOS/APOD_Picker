@@ -19,3 +19,8 @@ def mac_display_info(text):
     }
     displays_list.append(display_info)
   return matches
+
+def sanitize_filename(url_string):
+  pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
+  rinsed = re.search(pattern, url_string)
+  return rinsed

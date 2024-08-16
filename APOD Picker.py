@@ -273,11 +273,6 @@ def simple_formatter(text):
       return concatenated_description
     return None
 
-def sanitize_filename(url_string):
-  pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
-  rinsed = re.search(pattern, url_string)
-  return rinsed
-
 def update_saves(saved):
   configObj = open_config()
   
