@@ -27,8 +27,8 @@ dummyString = r"""Apple M1:
 
 def mac_display_info(text):
   SysParam_pattern = re.compile(r"\s+(\w+ \w+):\r?\n(?:\s+.*?\r?\n)*?\s+Resolution: (\d+ x \d+)(?:.*?\r?\n)*?(?:\s+UI Looks like: (\d+ x \d+))?(?:.*?\r?\n)*?\s+Main Display: (Yes|No)")
-  # Disp. name, wdim x hdim
-  alt_pattern = r"\s+(\w+ \w+): ?\r?\n(?:\s+.*\r?\n)*?\s+Resolution: (\d+ x \d+)"
+  # Disp. name, wdim x hdim, UI scale(looks like)
+  alt_pattern = r"\s+(\w+ \w+): ?\r?\n(?:\s+.*\r?\n)*?\s+Resolution: (\d+ x \d+)(?:.*?\r?\n)*?(?:\s+UI Looks like: (\d+ x \d+))?(?:.*?\r?\n)*?"
   matches = SysParam_pattern.findall(text)
   
   displays_list = []
