@@ -4,6 +4,7 @@ dummyString = "Apple M1:\r\n\nChipset Model: Apple M1\r\n      Type: GPU\r\n    
 
 def mac_display_info(text):
   SysParam_pattern = re.compile(r"(\w+ \w+):\r?\n(?:\s+.*?\r?\n)*?\s+Resolution: (\d+ x \d+)(?:.*?\r?\n)*?(?:\s+UI Looks like: (\d+ x \d+))?(?:.*?\r?\n)*?\s+Main Display: (Yes|No)")
+  alt_pattern = 
   matches = SysParam_pattern.findall(text)
   
   displays_list = []
@@ -16,5 +17,5 @@ def mac_display_info(text):
       "Looks Like": looks_like,
       "Main Display": main_display
     }
-    displays.append(display_info)
+    displays_list.append(display_info)
   return matches
