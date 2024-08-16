@@ -2,7 +2,6 @@ import ctypes
 import os
 import sys
 import platform
-import re
 import json
 import random
 import requests
