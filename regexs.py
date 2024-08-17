@@ -64,13 +64,21 @@ def mac_dual_display(text):
     a = [lines[i] for i in range(indices[0],indices[1])]
     b = [lines[i] for i in range(indices[1],len(lines))]
     displays = [a,b]
-  # format the needed info
-  for i in displays:
-    for line in i:
-      resolutionPattern = r"\d+[^ x]\d+"
-      resolutionTuple = []
-      # print(line)
-      if "Resolution:" in line:
-        digits = re.findall(resolutionPattern,line)
-        resolutionTuple = tuple(digits)
-        print(resolutionTuple)
+    # format the needed info
+    for i,d in enumerate(displays,1):
+      for line in d:
+        # Reso's/scale
+        resolutionsPattern = r"\d+[^ x.]\d+"
+        if "Resolution:" in line:
+          digits = re.findall(resolutionsPattern,line)
+          resolutionTuple = tuple(digits)
+          print(resolutionTuple)
+        if "Looks" in line:
+          digits = re.findall(resolutionsPattern,line)
+          scale = tuple(digits)
+        
+        # Primary or no
+        main = False
+        if "Main" in line:
+          main = True
+      
