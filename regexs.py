@@ -64,7 +64,7 @@ def mac_dual_display(text):
     match_list = [a,b]
 
     displays_list = list()
-    for i,d in enumerate(match_list,1):
+    for d in match_list:
       main = False
       resolutionTuple = ()
       scale = None
