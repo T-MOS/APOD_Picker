@@ -1,4 +1,5 @@
 import os
+f"/usr/bin/osascript -e '{script}'"
 #old
 script0 = f"""
 tell application "Finder"
