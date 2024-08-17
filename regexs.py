@@ -5,7 +5,7 @@ def sanitize_filename(url_string):
   rinsed = re.search(pattern, url_string)
   return rinsed
 
-dummyString = r"""Apple M1:
+rawString = r"""Apple M1:
 
       Chipset Model: Apple M1
       Type: GPU
@@ -31,13 +31,11 @@ dummyString = r"""Apple M1:
           Virtual Device: Yes """
 
 def mac_display_info(text):
-  # SysParam_pattern = re.compile(r"\s+(\w+ \w+):\r?\n(?:\s+.*?\r?\n)*?\s+Resolution: (\d+ x \d+)(?:.*?\r?\n)*?(?:\s+UI Looks like: (\d+ x \d+))?(?:.*?\r?\n)*?\s+Main Display: (Yes|No)")
   # Disp. name, wdim x hdim, UI scale(looks like)
   alt_pattern = r"\s+(\w+ \w+): ?\r?\n(?:\s+.*\r?\n)*?\s+Resolution: (\d+ x \d+)(?:.*?\r?\n)*?(?:\s+UI Looks like: (\d+ x \d+))?(?:.*?\r?\n)*?"
   matches = alt_pattern.findall(text)
   
   displays_list = []
-  # if len(matches)>1:
   for i, match in enumerate(matches, 1):
     display_name, resolution, looks_like, main_display = match
     display_info = {
@@ -61,24 +59,32 @@ def mac_dual_display(text):
       if i in line:
         indices.append(lines.index(line))
   if len(indices) == 2:
-    a = [lines[i] for i in range(indices[0],indices[1])]
-    b = [lines[i] for i in range(indices[1],len(lines))]
-    displays = [a,b]
-    # format the needed info
-    for i,d in enumerate(displays,1):
+    a = [lines[i].strip() for i in range(indices[0],indices[1])]
+    b = [lines[i].strip() for i in range(indices[1],len(lines))]
+    match_list = [a,b]
+
+    displays_list = list()
+    for i,d in enumerate(match_list,1):
+      main = False
+      resolutionTuple = ()
+      scale = None
       for line in d:
-        # Reso's/scale
+        # Reso's
         resolutionsPattern = r"\d+[^ x.]\d+"
         if "Resolution:" in line:
           digits = re.findall(resolutionsPattern,line)
           resolutionTuple = tuple(digits)
-          print(resolutionTuple)
-        if "Looks" in line:
+        elif "Looks" in line:
           digits = re.findall(resolutionsPattern,line)
           scale = tuple(digits)
-        
-        # Primary or no
-        main = False
-        if "Main" in line:
+        # Primary
+        elif "Main" in line:
           main = True
+      display_info = {
+      "Resolution": resolutionTuple,
+      "UI Scale": scale,
+      "Primary": main
+      }  
+      displays_list.append(display_info)
+  return 
       
