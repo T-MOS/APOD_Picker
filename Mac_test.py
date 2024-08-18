@@ -35,7 +35,6 @@ def set_wallpapers(images):
         idx = i+1
         script_contents += inner_1.format(idx=idx, image_path=img)
     oneoff = """
-    
         set currDesktop to item 1 of desktops
         set currDesktop's picture to "test_images/EtnaLightPillar_Tine_5100.jpg"
     """
