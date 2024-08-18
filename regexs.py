@@ -86,5 +86,5 @@ def mac_dual_display(text):
       "Primary": main
       }  
       displays_list.append(display_info)
-  return 
+  return displays_list
       
