@@ -25,7 +25,12 @@ rawString = r"""Apple M1:
           Connection Type: AirPlay
           Virtual Device: Yes """
 
-def mac_dual_display(text):
+def get_disp_data():
+  import subprocess
+  result = subprocess.run(['system_profiler SPDisplaysDataType'], capture_output=True, text=True) #, shell=True)
+  return result.stdout
+
+def mac_dual_display(text=get_disp_data()):
   pattern = r"\s+(\w+ \w+): ?\r?\n"
   matches = re.findall(pattern,text)
   lines = text.splitlines()
@@ -64,4 +69,18 @@ def mac_dual_display(text):
       }  
       displays_list.append(display_info)
   return displays_list
-      
+
+
+""" test scripts """
+# (1)
+""" 
+tell application "System Events"
+    tell every desktop
+        set picture to ""
+    end tell
+end tell 
+"""
+# (1.1)
+""" 
+tell application "System Events" to tell every desktop to set picture to ""
+"""
