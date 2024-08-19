@@ -8,8 +8,9 @@ import requests
 import logging
 import tempfile
 import scheduler
+import re
 from log import to_errlog, json_log
-from regexs import mac_display_info, sanitize_filename
+from Mac_specifcs import *
 from screeninfo import get_monitors
 from tkinter import Tk
 from datetime import datetime
@@ -32,7 +33,7 @@ def default_dir_initializer():
   default_relative_path = os.path.join(base_dir, 'APOD Saves')
 
   # makes the main saves dir while making the faves subdir 
-  make_dirs = os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
+  os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
   
   # configObj = open_config()
   # configObj['base path'] = default_relative_path
@@ -73,6 +74,11 @@ def scheduling(task_action):
       scheduler.create_task(task_action)
   except Exception as e:
     to_errlog(f"Task scheduler (win) error:{e}")
+
+def sanitize_filename(url_string):
+  pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
+  rinsed = re.search(pattern, url_string)
+  return rinsed
 
 def resize(image,mn):
   # init dimensions

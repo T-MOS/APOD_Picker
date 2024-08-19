@@ -1,10 +1,5 @@
 import re
 
-def sanitize_filename(url_string):
-  pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
-  rinsed = re.search(pattern, url_string)
-  return rinsed
-
 rawString = r"""Apple M1:
 
       Chipset Model: Apple M1
@@ -30,23 +25,6 @@ rawString = r"""Apple M1:
           Connection Type: AirPlay
           Virtual Device: Yes """
 
-def mac_display_info(text):
-  # Disp. name, wdim x hdim, UI scale(looks like)
-  alt_pattern = r"\s+(\w+ \w+): ?\r?\n(?:\s+.*\r?\n)*?\s+Resolution: (\d+ x \d+)(?:.*?\r?\n)*?(?:\s+UI Looks like: (\d+ x \d+))?(?:.*?\r?\n)*?"
-  matches = alt_pattern.findall(text)
-  
-  displays_list = []
-  for i, match in enumerate(matches, 1):
-    display_name, resolution, looks_like, main_display = match
-    display_info = {
-      "Display Name": display_name,
-      "Resolution": resolution,
-      "Looks Like": looks_like,
-      "Main Display": main_display
-    }
-    displays_list.append(display_info)
-  return matches
-
 def mac_dual_display(text):
   pattern = r"\s+(\w+ \w+): ?\r?\n"
   matches = re.findall(pattern,text)
@@ -62,7 +40,6 @@ def mac_dual_display(text):
     a = [lines[i].strip() for i in range(indices[0],indices[1])]
     b = [lines[i].strip() for i in range(indices[1],len(lines))]
     match_list = [a,b]
-
     displays_list = list()
     for d in match_list:
       main = False
