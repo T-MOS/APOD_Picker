@@ -4,7 +4,6 @@ config.json
 /Scripts
 *.cfg
 /Lib
-exiftool.exe
 /share
 info.txt
 /build
