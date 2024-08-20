@@ -10,7 +10,7 @@ import tempfile
 import scheduler
 import re
 from log import to_errlog, json_log
-from Mac_specifcs import *
+from Mac_specifics import *
 from screeninfo import get_monitors
 from tkinter import Tk
 from datetime import datetime
