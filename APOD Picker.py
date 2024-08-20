@@ -32,12 +32,9 @@ def default_dir_initializer():
   base_dir = get_base_path()[0]
   default_relative_path = os.path.join(base_dir, 'APOD Saves')
 
-  # makes the main saves dir while making the faves subdir 
+  # make the main saves dir & faves subdir 
   os.makedirs(os.path.join(default_relative_path, 'faves'), exist_ok=True)
-  
-  # configObj = open_config()
-  # configObj['base path'] = default_relative_path
-  # dump2json_file(configObj)
+
   return default_relative_path
 
 #check for &/or init attempts log
@@ -63,7 +60,6 @@ def init_all():
         "faves": []
       }
       json.dump(configObj,file,indent=2)
-      
   return info 
 
 def scheduling(task_action):
@@ -199,14 +195,12 @@ def image_pool_selector(config):
 
 def urlRandomizer():
   today = datetime.now()
-  
   #year
   y = random.randint(1995,today.year)
   if y < 2095:
     yStr = str(y)[-2:]
   else:
     yStr = str(y)[-3:]
-  
   #month/day
   m = random.randint(1,12)
   d = random.randint(1,31)
@@ -265,7 +259,7 @@ def simple_formatter(text):
       lines = text.splitlines()
       concatenated_description = ''
       for line in lines:
-        if len(line) >0:
+        if len(line) > 0:
           line = line.strip() # Remove whitespace at the beginning and end of the line
           if line.startswith('Explanation:'):
             concatenated_description += ''
@@ -281,7 +275,6 @@ def simple_formatter(text):
 
 def update_saves(saved):
   configObj = open_config()
-  
   saves = configObj['saves']
   keep = configObj['keep']
   saves.insert(0,saved)
