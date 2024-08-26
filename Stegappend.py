@@ -1,18 +1,26 @@
-import sys
+import sys, os
 import numpy as np
 import textwrap
 from PIL import Image
 
 def image_accessor(image):
-  openInitial = Image.open(image)
-  image_array = np.array(openInitial)
+  if isinstance(image, Image.Image):
+    image_array = np.array(image)
+  else:
+    openInitial = Image.open(image)
+    image_array = np.array(openInitial)
+
   return image_array
 
 # ENCODE
 def text_to_dec(text):
-  with open(text, 'r',encoding="utf-8") as t:
-    te = t.read()
-    decimalized = np.array(bytearray(te, 'utf-8'))
+  if os.path.exists(text):
+    with open(text, 'r',encoding="utf-8") as t:
+      te = t.read()
+      decimalized = np.array(bytearray(te, 'utf-8'))
+      decimalShaped = pad_and_reshape_text_decimals(decimalized)
+  else:
+    decimalized = np.array(bytearray(text, 'utf-8'))
     decimalShaped = pad_and_reshape_text_decimals(decimalized)
   return decimalShaped
 
@@ -42,6 +50,13 @@ def array_operations(padded_array):
   text_embedded_image = Image.fromarray(rebuilt)
   return text_embedded_image
 
+def APOD_encoding(imageOrPath,description):
+  global image_array
+  image_array = image_accessor(imageOrPath)
+  decimal_shaped = text_to_dec(description) # argv 2
+  text_embedded = array_operations(decimal_shaped)
+  # text_embedded.save("test/embedded_iapetus.bmp")
+  return text_embedded
 
 # DECODE 
 def data_getter(image_array):
@@ -56,6 +71,15 @@ def data_getter(image_array):
 def printer(decoded_string):
   wrapped_description = textwrap.fill(decoded_string, width=50)
   print(f"{'*' * 50}\n{'APODescription':^50}\n{'-' * 50}\n{wrapped_description}\n{'*' * 50}")
+
+def APOD_decoding():
+  if len(sys.argv) == 2:
+    global image_array
+    image_array = image_accessor(sys.argv[1]) # argv 1
+  else:
+    sys.exit(1)
+  decoded = data_getter(image_array)
+  printer(decoded)
 
 # Run Conditions
 if __name__ == "__main__":

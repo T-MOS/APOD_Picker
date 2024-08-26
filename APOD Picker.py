@@ -10,6 +10,7 @@ import tempfile
 import scheduler
 import re
 from log import to_errlog, json_log
+import Stegappend
 # from Mac_specifics import mac_dual_display
 from screeninfo import get_monitors
 from tkinter import Tk
@@ -360,18 +361,21 @@ def duplicate_paths(url, configs):
   else:
     return None, clean_filename # no paths
 
-def select_save_path(input, title):
+def select_save_path(input, title, description):
   configObj = open_config()
   defaultDir = configObj.get('base path')
+  inputImage = input
 
   if os.path.exists(defaultDir) == False:
     os.makedirs(defaultDir,exist_ok=True)
 
   file_path = os.path.join(defaultDir, title + '.jpg')
   if file_path:
+    # if description is not None:
+    #   inputImage = Stegappend.APOD_encoding(input, description)
     try:
       update_saves(title + '.jpg')
-      input.save(file_path)
+      inputImage.save(file_path)
       return file_path
     except Exception as e:
       to_errlog(f"Failed to save image: {e}\n")
@@ -541,7 +545,7 @@ def main():
         json_log(pool,img_url, "Duplicate found", dup_check[1])
     else:
       if configObj['keep'] > 0: # SAVE -> set
-        image_path = select_save_path(image, dup_check[1])
+        image_path = select_save_path(image, dup_check[1], description)
         logging.debug(f"Image saved to path: {image_path}")
         if image_path:
           if len(multi_monitor) == 2:
