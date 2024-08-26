@@ -1,16 +1,6 @@
-import ctypes
-import os
-import sys
-import platform
-import json
-import random
-import requests
-import logging
-import tempfile
-import scheduler
-import re
+import ctypes, os, sys, platform, json, random, requests, logging, tempfile, re
 from log import to_errlog, json_log
-import Stegappend
+import Stegappend, scheduler
 # from Mac_specifics import mac_dual_display
 from screeninfo import get_monitors
 from tkinter import Tk
@@ -19,12 +9,15 @@ from io import BytesIO
 from bs4 import BeautifulSoup
 from PIL import Image
 
+if len(sys.argv) == 2:
+  Stegappend.APOD_decoding()
+
 # logging.basicConfig(level=logging.DEBUG, format='%(asctime)s - %(levelname)s - %(message)s')
+
 def get_base_path():
   if getattr(sys,'frozen',False): # executable
     app_path = os.path.dirname(sys.executable)
     task_action = os.path.join(app_path, sys.executable)
-    
   else: # script
     app_path = os.path.dirname(os.path.abspath(__file__))
     task_action = os.path.join(app_path,__file__) 
@@ -592,5 +585,6 @@ def main():
       set_desktop_background(fave_img)
       json_log(pool, fave_img, "n/a; faves pool preselect", fave_img)
 
-if __name__=="__main__":
-  main()
+if len(sys.argv) == 1:
+  if __name__=="__main__":
+    main()
