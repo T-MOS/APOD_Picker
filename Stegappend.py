@@ -1,7 +1,13 @@
 import sys, os
 import numpy as np
 import textwrap
+import re
 from PIL import Image
+
+def sanitize_filename(url_string):
+  pattern = r'([^\\/]+)\.[^.]+$' #read: "after last '/' before last '.'"
+  rinsed = re.search(pattern, url_string)
+  return rinsed
 
 def image_accessor(image):
   if isinstance(image, Image.Image):
@@ -70,14 +76,11 @@ def data_getter(image_array):
 
 def printer(decoded_string):
   wrapped_description = textwrap.fill(decoded_string, width=50)
-  print(f"{'*' * 50}\n{'APODescription':^50}\n{'-' * 50}\n{wrapped_description}\n{'*' * 50}")
+  print(f"{'*' * 50}\n{f'APOD-escription: {sanitize_filename(sys.argv[1]).group(1)}':^50}\n{'-' * 50}\n{wrapped_description}\n{'*' * 50}")
 
 def APOD_decoding():
-  if len(sys.argv) == 2:
-    global image_array
-    image_array = image_accessor(sys.argv[1]) # argv 1
-  else:
-    sys.exit(1)
+  global image_array
+  image_array = image_accessor(sys.argv[1]) # argv 1
   decoded = data_getter(image_array)
   printer(decoded)
 
