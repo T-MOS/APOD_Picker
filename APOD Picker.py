@@ -369,12 +369,12 @@ def select_save_path(input, title, description):
   if os.path.exists(defaultDir) == False:
     os.makedirs(defaultDir,exist_ok=True)
 
-  file_path = os.path.join(defaultDir, title + '.jpg')
+  file_path = os.path.join(defaultDir, title + '.png')
   if file_path:
-    # if description is not None:
-    #   inputImage = Stegappend.APOD_encoding(input, description)
+    if description is not None:
+      inputImage = Stegappend.APOD_encoding(input, description)
     try:
-      update_saves(title + '.jpg')
+      update_saves(title + '.png')
       inputImage.save(file_path)
       return file_path
     except Exception as e:
