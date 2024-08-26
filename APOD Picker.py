@@ -24,6 +24,7 @@ def get_base_path():
   if getattr(sys,'frozen',False): # executable
     app_path = os.path.dirname(sys.executable)
     task_action = os.path.join(app_path, sys.executable)
+    
   else: # script
     app_path = os.path.dirname(os.path.abspath(__file__))
     task_action = os.path.join(app_path,__file__) 
@@ -64,13 +65,14 @@ def init_all():
   return info 
 
 def scheduling(task_action):
-  try:
-    if scheduler.task_exists():
-      return
-    else:
-      scheduler.create_task(task_action)
-  except Exception as e:
-    to_errlog(f"Task scheduler (win) error:{e}")
+  if getattr(sys,'frozen',False): # only check/schedule if executable runs
+    try:
+      if scheduler.task_exists():
+        return
+      else:
+        scheduler.create_task(task_action)
+    except Exception as e:
+      to_errlog(f"Task scheduler (win) error:{e}")
 
 def sanitize_filename(url_string):
   pattern = r'([^/]+)\.[^.]+$' #read: "after last '/' before last '.'"
